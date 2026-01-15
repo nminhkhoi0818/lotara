@@ -207,11 +207,12 @@ export function ChatOnboarding() {
             <div className="space-y-4">
               <div className="bg-linear-to-r from-primary/10 to-secondary/10 border border-primary/20 rounded-2xl p-6 text-center">
                 <h3 className="font-semibold text-foreground mb-2">
-                  You're all set!
+                  {"You're all set!"}
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  I've gathered all the information I need to create your
-                  perfect itinerary.
+                  {
+                    "I've gathered all the information I need to create your perfect itinerary."
+                  }
                 </p>
               </div>
               <Button
