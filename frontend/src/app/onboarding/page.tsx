@@ -2,7 +2,7 @@ import { ChatOnboarding } from "@/components/chat-onboarding";
 
 export default function OnboardingPage() {
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-br from-background via-primary/2 to-background">
+    <div className="min-h-[calc(100vh-5rem)] flex flex-col bg-linear-to-br from-background via-primary/2 to-background">
       <main className="flex-1 flex flex-col">
         <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
           {/* Header */}
