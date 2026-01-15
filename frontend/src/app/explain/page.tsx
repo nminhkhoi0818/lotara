@@ -20,8 +20,9 @@ export default function ExplainPage() {
               How Lotara Works
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Transparency is key. Here's exactly how our AI analyzed your
-              answers to create your personalized trip
+              {
+                "Transparency is key. Here's exactly how our AI analyzed your answers to create your personalized trip"
+              }
             </p>
           </div>
 
@@ -105,7 +106,7 @@ export default function ExplainPage() {
                         City Scoring Logic
                       </h3>
                       <p className="text-sm text-muted-foreground">
-                        How we ranked Vietnam's destinations
+                        {"How we ranked Vietnam's destinations"}
                       </p>
                     </div>
                   </div>
@@ -290,13 +291,14 @@ export default function ExplainPage() {
               Our Commitment to Explainability
             </h2>
             <p className="text-muted-foreground mb-4">
-              We believe in transparent AI. Every recommendation comes with a
-              reason. You're never left wondering why we chose something—we show
-              you the logic, the data, and the decision process.
+              {
+                " We believe in transparent AI. Every recommendation comes with a reason. You're never left wondering why we chose something—we show you the logic, the data, and the decision process."
+              }
             </p>
             <p className="text-muted-foreground">
-              Your feedback helps us improve. If something doesn't feel right,
-              let us know and we'll adjust the scoring for future trips.
+              {
+                "Your feedback helps us improve. If something doesn't feel right, let us know and we'll adjust the scoring for future trips."
+              }
             </p>
           </Card>
         </div>

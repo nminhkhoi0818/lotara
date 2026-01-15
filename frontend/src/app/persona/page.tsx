@@ -68,7 +68,7 @@ export default function PersonaPage() {
               Your Travel Persona
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Based on your answers, here's your unique travel profile
+              {" Based on your answers, here's your unique travel profile"}
             </p>
           </div>
 
@@ -182,8 +182,9 @@ export default function PersonaPage() {
               Ready for your personalized trip?
             </h2>
             <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-              Based on your travel persona, we're generating the perfect Vietnam
-              itinerary just for you
+              {
+                "Based on your travel persona, we're generating the perfect Vietnam itinerary just for you"
+              }
             </p>
             <Button
               size="lg"

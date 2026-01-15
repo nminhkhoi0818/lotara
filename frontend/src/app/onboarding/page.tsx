@@ -8,7 +8,7 @@ export default function OnboardingPage() {
           {/* Header */}
           <div className="px-4 md:px-6 py-8 md:py-10 text-center border-b border-border/30">
             <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
-              Let's Plan Your Trip
+              {"Let's Plan Your Trip"}
             </h1>
             <p className="text-muted-foreground">
               Chat with Lotus to discover your perfect Vietnam experience in

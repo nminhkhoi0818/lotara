@@ -30,8 +30,8 @@ export default function Home() {
             <div className="absolute top-1/2 -left-32 w-96 h-96 bg-secondary/15 rounded-full blur-3xl" />
             <div className="absolute -bottom-48 right-1/3 w-80 h-80 bg-accent/10 rounded-full blur-3xl" />
             {/* Transition blobs */}
-            <div className="absolute bottom-0 left-1/4 w-[600px] h-[600px] bg-primary/8 rounded-full blur-3xl" />
-            <div className="absolute bottom-20 right-1/3 w-[500px] h-[500px] bg-secondary/6 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-1/4 w-150 h-150 bg-primary/8 rounded-full blur-3xl" />
+            <div className="absolute bottom-20 right-1/3 w-125 h-125 bg-secondary/6 rounded-full blur-3xl" />
           </div>
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10 w-full">
@@ -96,7 +96,7 @@ export default function Home() {
               <div className="relative hidden lg:block">
                 <div className="relative h-96 flex items-center justify-center">
                   {/* Main logo card */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent rounded-3xl border border-primary/20 backdrop-blur-sm overflow-hidden shadow-2xl">
+                  <div className="absolute inset-0 bg-linear-to-br from-primary/10 via-secondary/5 to-transparent rounded-3xl border border-primary/20 backdrop-blur-sm overflow-hidden shadow-2xl">
                     <Image
                       src="/logo_icon.png"
                       alt="Lotara Logo"
@@ -147,9 +147,9 @@ export default function Home() {
         <section className="py-24 md:py-32 relative">
           {/* Smooth blob transitions */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-0 left-1/3 w-[700px] h-[700px] bg-primary/8 rounded-full blur-3xl" />
-            <div className="absolute top-40 right-1/4 w-[500px] h-[500px] bg-secondary/6 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-3xl" />
+            <div className="absolute top-0 left-1/3 w-175 h-175 bg-primary/8 rounded-full blur-3xl" />
+            <div className="absolute top-40 right-1/4 w-125 h-125 bg-secondary/6 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 left-1/2 w-150 h-150 bg-accent/5 rounded-full blur-3xl" />
           </div>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-20">
@@ -169,7 +169,7 @@ export default function Home() {
 
             <div className="grid md:grid-cols-3 gap-8 relative">
               {/* Connecting line */}
-              <div className="hidden md:block absolute top-32 left-0 right-0 h-1 bg-gradient-to-r from-primary/20 via-primary/40 to-primary/20" />
+              <div className="hidden md:block absolute top-32 left-0 right-0 h-1 bg-linear-to-r from-primary/20 via-primary/40 to-primary/20" />
 
               {[
                 {
@@ -203,7 +203,7 @@ export default function Home() {
                     <div className="h-full flex flex-col gap-6 p-8 rounded-2xl border border-border/50 bg-card hover:border-primary/40 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                       <div className="relative">
                         <div
-                          className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center shadow-lg`}
+                          className={`w-16 h-16 rounded-2xl bg-linear-to-br ${item.color} flex items-center justify-center shadow-lg`}
                         >
                           <Icon className="w-8 h-8 text-white" />
                         </div>
@@ -227,7 +227,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-24 md:py-32 bg-gradient-to-b from-primary/5 via-secondary/3 to-background">
+        <section className="py-24 md:py-32 bg-linear-to-b from-primary/5 via-secondary/3 to-background">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-20">
               <h2 className="text-5xl lg:text-6xl font-bold text-foreground mb-6 text-balance">
@@ -278,15 +278,15 @@ export default function Home() {
                     onMouseLeave={() => setHoveredFeature(null)}
                     className={`p-8 rounded-2xl border transition-all duration-300 cursor-pointer ${
                       feature.isHighlight
-                        ? "bg-gradient-to-br from-primary/10 to-secondary/5 border-primary/30 hover:border-primary/60 hover:shadow-xl"
-                        : "bg-card border-border/50 hover:border-primary/30 hover:shadow-lg hover:bg-gradient-to-br hover:from-primary/5 hover:to-secondary/2"
+                        ? "bg-linear-to-br from-primary/10 to-secondary/5 border-primary/30 hover:border-primary/60 hover:shadow-xl"
+                        : "bg-card border-border/50 hover:border-primary/30 hover:shadow-lg hover:bg-linear-to-br hover:from-primary/5 hover:to-secondary/2"
                     } ${hoveredFeature === i ? "scale-105" : ""}`}
                   >
                     <div className="flex items-start gap-5">
                       <div
                         className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 transition-all ${
                           feature.isHighlight
-                            ? "bg-gradient-to-br from-primary to-secondary text-white shadow-lg"
+                            ? "bg-linear-to-br from-primary to-secondary text-white shadow-lg"
                             : "bg-primary/15 text-primary group-hover:bg-primary/25"
                         }`}
                       >
@@ -316,11 +316,11 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-24 md:py-32 relative overflow-hidden bg-gradient-to-b from-background via-primary/3 to-secondary/5">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-secondary/5 opacity-50" />
+        <section className="py-24 md:py-32 relative overflow-hidden bg-linear-to-b from-background via-primary/3 to-secondary/5">
+          <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-transparent to-secondary/5 opacity-50" />
 
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="relative overflow-hidden rounded-3xl border border-primary/20 backdrop-blur-xl bg-gradient-to-br from-primary/5 via-secondary/5 to-transparent p-12 md:p-16 shadow-2xl">
+            <div className="relative overflow-hidden rounded-3xl border border-primary/20 backdrop-blur-xl bg-linear-to-br from-primary/5 via-secondary/5 to-transparent p-12 md:p-16 shadow-2xl">
               <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl" />
               <div className="absolute -bottom-32 -left-32 w-72 h-72 bg-secondary/15 rounded-full blur-3xl" />
 
