@@ -244,8 +244,9 @@ export default function PersonaPage() {
               Your Travel Persona
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Based on your preferences, here's your personalized Vietnam travel
-              profile
+              {
+                "Based on your preferences, here's your personalized Vietnam travel profile"
+              }
             </p>
           </div>
 
