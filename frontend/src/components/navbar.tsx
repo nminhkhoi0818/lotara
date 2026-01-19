@@ -19,6 +19,18 @@ export function Navbar() {
 
           <div className="hidden md:flex items-center gap-6">
             <Link
+              href="/onboarding"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Start Planning
+            </Link>
+            <Link
+              href="/persona"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Your Persona
+            </Link>
+            <Link
               href="/saved"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
