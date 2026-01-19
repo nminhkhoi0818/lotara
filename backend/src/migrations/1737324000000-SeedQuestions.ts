@@ -13,6 +13,8 @@ interface QuestionSeed {
 export class SeedQuestions1737324000000 implements MigrationInterface {
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Read questions from JSON file
+    // In dev: __dirname = src/migrations, need ../../data/questions.json
+    // In prod: __dirname = dist/migrations, need ../../data/questions.json
     const filePath = path.join(__dirname, '..', '..', 'data', 'questions.json');
     const raw = await fs.readFile(filePath, 'utf8');
     const questions = JSON.parse(raw) as QuestionSeed[];

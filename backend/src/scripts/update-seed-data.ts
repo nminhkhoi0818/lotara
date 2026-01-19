@@ -21,6 +21,8 @@ async function updateSeedData() {
     console.log('✓ Database connected');
 
     // Read questions from JSON file
+    // In dev: __dirname = src/scripts, need ../../data/questions.json
+    // In prod: __dirname = dist/scripts, need ../../data/questions.json
     const filePath = path.join(__dirname, '..', '..', 'data', 'questions.json');
     const raw = await fs.readFile(filePath, 'utf8');
     const questions = JSON.parse(raw) as QuestionSeed[];
