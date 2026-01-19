@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import {
   User,
   BudgetRange,
@@ -12,14 +14,15 @@ import { VibeMappingService } from './vibe-mapping.service';
 /**
  * Service for managing user data and persistence.
  *
- * This is a simple in-memory implementation for MVP.
- * In production, this would integrate with TypeORM/database.
+ * Uses TypeORM Repository for database operations.
  */
 @Injectable()
 export class UsersService {
-  private users: Map<string, User> = new Map();
-
-  constructor(private vibeMappingService: VibeMappingService) {}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private vibeMappingService: VibeMappingService,
+  ) {}
 
   /**
    * Creates a new user from onboarding data.
@@ -27,41 +30,41 @@ export class UsersService {
    * Steps:
    * 1. Map answers to vibe vector
    * 2. Create User entity
-   * 3. Persist user
+   * 3. Persist user to database
    * 4. Return userId
    *
    * @param createUserOnboardingDto Onboarding request
    * @returns User ID
    */
-  createUserFromOnboarding(
+  async createUserFromOnboarding(
     createUserOnboardingDto: CreateUserOnboardingDto,
-  ): string {
+  ): Promise<string> {
     // Map answers to vibe vector
     const vibeVector = this.vibeMappingService.mapAnswersToVibe(
       createUserOnboardingDto.answers,
     );
 
     // Create user entity
-    const user = new User(
-      vibeVector,
-      createUserOnboardingDto.budget as BudgetRange,
-      createUserOnboardingDto.travelStyle as TravelStyle,
-    );
+    const user = this.userRepository.create({
+      vibe_vector: vibeVector,
+      budget_range: createUserOnboardingDto.budget as BudgetRange,
+      travel_style: createUserOnboardingDto.travelStyle as TravelStyle,
+    });
 
-    // Persist user (in-memory storage)
-    this.users.set(user.id, user);
+    // Persist user to database
+    const savedUser = await this.userRepository.save(user);
 
-    return user.id;
+    return savedUser.id;
   }
 
   /**
-   * Retrieves a user by ID (for testing/debugging).
+   * Retrieves a user by ID.
    *
    * @param userId User ID
-   * @returns User or undefined
+   * @returns User or null
    */
-  getUserById(userId: string): User | undefined {
-    return this.users.get(userId);
+  async getUserById(userId: string): Promise<User | null> {
+    return await this.userRepository.findOne({ where: { id: userId } });
   }
 
   /**
@@ -69,20 +72,22 @@ export class UsersService {
    *
    * @returns Array of all users
    */
-  getAllUsers(): User[] {
-    return Array.from(this.users.values());
+  async getAllUsers(): Promise<User[]> {
+    return await this.userRepository.find();
   }
 
   /**
    * Submits user onboarding answers and creates a user with persona.
    *
    * This endpoint accepts the full persona questionnaire from the frontend
-   * and creates a user with the persona data stored.
+   * and creates a user with the persona data stored in the database.
    *
    * @param submitUserOnboardingDto Persona answers from frontend
    * @returns Created user with persona data
    */
-  submitUserOnboarding(submitUserOnboardingDto: SubmitUserOnboardingDto): User {
+  async submitUserOnboarding(
+    submitUserOnboardingDto: SubmitUserOnboardingDto,
+  ): Promise<User> {
     // Convert DTO to PersonaAnswers
     const personaAnswers: PersonaAnswers = {
       duration: submitUserOnboardingDto.duration as any,
@@ -113,12 +118,15 @@ export class UsersService {
     );
 
     // Create user entity with persona data
-    const user = new User(vibeVector, budgetRange, travelStyle, personaAnswers);
+    const user = this.userRepository.create({
+      vibe_vector: vibeVector,
+      budget_range: budgetRange,
+      travel_style: travelStyle,
+      persona_answers: personaAnswers,
+    });
 
-    // Persist user (in-memory storage)
-    this.users.set(user.id, user);
-
-    return user;
+    // Persist user to database
+    return await this.userRepository.save(user);
   }
 
   /**

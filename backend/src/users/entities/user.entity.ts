@@ -1,4 +1,9 @@
-import { v4 as uuidv4 } from 'uuid';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 export type BudgetRange = 'low' | 'medium' | 'high';
 export type TravelStyle = 'solo' | 'couple' | 'group';
@@ -45,25 +50,29 @@ export interface PersonaAnswers {
   timing: Timing;
 }
 
+@Entity('users')
 export class User {
+  @PrimaryGeneratedColumn('uuid')
   id: string;
-  vibe_vector: VibeVector;
-  budget_range: BudgetRange;
-  travel_style: TravelStyle;
-  persona_answers?: PersonaAnswers;
-  created_at: Date;
 
-  constructor(
-    vibe_vector: VibeVector,
-    budget_range: BudgetRange,
-    travel_style: TravelStyle,
-    persona_answers?: PersonaAnswers,
-  ) {
-    this.id = uuidv4();
-    this.vibe_vector = vibe_vector;
-    this.budget_range = budget_range;
-    this.travel_style = travel_style;
-    this.persona_answers = persona_answers;
-    this.created_at = new Date();
-  }
+  @Column('jsonb')
+  vibe_vector: VibeVector;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+  })
+  budget_range: BudgetRange;
+
+  @Column({
+    type: 'varchar',
+    length: 50,
+  })
+  travel_style: TravelStyle;
+
+  @Column('jsonb', { nullable: true })
+  persona_answers?: PersonaAnswers;
+
+  @CreateDateColumn()
+  created_at: Date;
 }

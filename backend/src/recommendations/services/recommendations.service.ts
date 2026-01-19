@@ -46,12 +46,12 @@ export class RecommendationsService {
    * @returns Ranked recommendations
    * @throws NotFoundException if user not found
    */
-  getRecommendationsForUser(
+  async getRecommendationsForUser(
     userId: string,
     limit: number = 10,
-  ): RecommendationResult {
+  ): Promise<RecommendationResult> {
     // Step 1: Retrieve user
-    const user = this.usersService.getUserById(userId);
+    const user = await this.usersService.getUserById(userId);
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
@@ -97,8 +97,8 @@ export class RecommendationsService {
    * @param userId User ID
    * @returns All places with scores
    */
-  getAllPlaceScores(userId: string): RecommendationResult {
-    const user = this.usersService.getUserById(userId);
+  async getAllPlaceScores(userId: string): Promise<RecommendationResult> {
+    const user = await this.usersService.getUserById(userId);
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
@@ -135,10 +135,10 @@ export class RecommendationsService {
    * @param limit Maximum number of recommendations
    * @returns Filtered recommendations
    */
-  getFilteredRecommendations(
+  async getFilteredRecommendations(
     userId: string,
     limit?: number,
-  ): RecommendationResult {
-    return this.getRecommendationsForUser(userId, limit);
+  ): Promise<RecommendationResult> {
+    return await this.getRecommendationsForUser(userId, limit);
   }
 }

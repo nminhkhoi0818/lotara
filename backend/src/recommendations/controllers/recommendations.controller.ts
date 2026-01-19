@@ -45,7 +45,7 @@ export class RecommendationsController {
     @Query('limit') limit?: string,
   ) {
     const limitNum = limit ? Math.min(parseInt(limit), 50) : 10;
-    return this.recommendationsService.getRecommendationsForUser(
+    return await this.recommendationsService.getRecommendationsForUser(
       userId,
       limitNum,
     );
@@ -61,6 +61,6 @@ export class RecommendationsController {
    */
   @Get(':userId/all')
   async getAllPlaceScores(@Param('userId') userId: string) {
-    return this.recommendationsService.getAllPlaceScores(userId);
+    return await this.recommendationsService.getAllPlaceScores(userId);
   }
 }
