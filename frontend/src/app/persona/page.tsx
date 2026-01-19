@@ -107,120 +107,120 @@ export default function PersonaPage() {
     // Opening based on companions + duration
     if (persona.companions === "solo") {
       parts.push(
-        `You're embarking on a ${durationLabels[persona.duration].toLowerCase()} solo adventure`
+        `You're embarking on a ${durationLabels[persona.duration].toLowerCase()} solo adventure`,
       );
     } else if (persona.companions === "couple") {
       parts.push(
-        `You and your partner are planning a ${durationLabels[persona.duration].toLowerCase()} romantic escape`
+        `You and your partner are planning a ${durationLabels[persona.duration].toLowerCase()} romantic escape`,
       );
     } else if (persona.companions === "family_kids") {
       parts.push(
-        `Your family (with kids) is planning a ${durationLabels[persona.duration].toLowerCase()} Vietnam adventure`
+        `Your family (with kids) is planning a ${durationLabels[persona.duration].toLowerCase()} Vietnam adventure`,
       );
     } else if (persona.companions === "family_adults") {
       parts.push(
-        `You're traveling with family for ${durationLabels[persona.duration].toLowerCase()}`
+        `You're traveling with family for ${durationLabels[persona.duration].toLowerCase()}`,
       );
     } else {
       parts.push(
-        `You and your friends are planning a ${durationLabels[persona.duration].toLowerCase()} group trip`
+        `You and your friends are planning a ${durationLabels[persona.duration].toLowerCase()} group trip`,
       );
     }
 
     // Travel style + activity level
     if (persona.travelStyle === "adventure" && persona.activity === "high") {
       parts.push(
-        `packed with adrenaline-pumping outdoor activities and physically challenging experiences`
+        `packed with adrenaline-pumping outdoor activities and physically challenging experiences`,
       );
     } else if (persona.travelStyle === "adventure") {
       parts.push(
-        `focused on adventure and outdoor exploration at a comfortable pace`
+        `focused on adventure and outdoor exploration at a comfortable pace`,
       );
     } else if (persona.travelStyle === "cultural") {
       parts.push(
-        `diving deep into Vietnam's rich history, traditions, and local culture`
+        `diving deep into Vietnam's rich history, traditions, and local culture`,
       );
     } else if (persona.travelStyle === "nature") {
       parts.push(
-        `immersing in Vietnam's stunning natural landscapes and pristine beaches`
+        `immersing in Vietnam's stunning natural landscapes and pristine beaches`,
       );
     } else if (persona.travelStyle === "food") {
       parts.push(
-        `on a culinary journey through Vietnam's incredible food scene`
+        `on a culinary journey through Vietnam's incredible food scene`,
       );
     } else if (persona.travelStyle === "wellness") {
       parts.push(`centered on relaxation, wellness, and peaceful rejuvenation`);
     } else if (persona.travelStyle === "photography") {
       parts.push(
-        `capturing Vietnam's most photogenic and Instagram-worthy moments`
+        `capturing Vietnam's most photogenic and Instagram-worthy moments`,
       );
     }
 
     // Budget + accommodation style
     if (persona.budget === "budget" && persona.accommodation === "hostel") {
       parts.push(
-        `You're traveling smart on a budget, staying in social hostels and guesthouses while maximizing authentic local experiences.`
+        `You're traveling smart on a budget, staying in social hostels and guesthouses while maximizing authentic local experiences.`,
       );
     } else if (
       persona.budget === "luxury" &&
       persona.accommodation === "premium"
     ) {
       parts.push(
-        `You appreciate the finer things, with luxury accommodations and premium experiences throughout your journey.`
+        `You appreciate the finer things, with luxury accommodations and premium experiences throughout your journey.`,
       );
     } else if (persona.budget === "midrange") {
       parts.push(
-        `You're seeking great value with comfortable ${accommodationLabels[persona.accommodation].toLowerCase()}, balancing quality and cost.`
+        `You're seeking great value with comfortable ${accommodationLabels[persona.accommodation].toLowerCase()}, balancing quality and cost.`,
       );
     } else {
       parts.push(
-        `You prefer ${accommodationLabels[persona.accommodation].toLowerCase()} that align with your ${budgetLabels[persona.budget].toLowerCase()} travel style.`
+        `You prefer ${accommodationLabels[persona.accommodation].toLowerCase()} that align with your ${budgetLabels[persona.budget].toLowerCase()} travel style.`,
       );
     }
 
     // Pace + crowds preference
     if (persona.pace === "slow" && persona.crowds === "avoid") {
       parts.push(
-        `Your ideal trip moves slowly and deliberately, avoiding tourist crowds to discover Vietnam's hidden gems and connect with local life.`
+        `Your ideal trip moves slowly and deliberately, avoiding tourist crowds to discover Vietnam's hidden gems and connect with local life.`,
       );
     } else if (persona.pace === "fast" && persona.crowds === "embrace") {
       parts.push(
-        `You want to see it all at a fast pace, hitting the iconic hotspots and maximizing every moment of your trip.`
+        `You want to see it all at a fast pace, hitting the iconic hotspots and maximizing every moment of your trip.`,
       );
     } else if (persona.pace === "balanced") {
       parts.push(
-        `You prefer a balanced approach - mixing popular attractions with off-the-beaten-path discoveries, with time to both explore and relax.`
+        `You prefer a balanced approach - mixing popular attractions with off-the-beaten-path discoveries, with time to both explore and relax.`,
       );
     } else if (persona.crowds === "avoid") {
       parts.push(
-        `You're drawn to quieter, less touristy spots where you can experience authentic Vietnam away from the crowds.`
+        `You're drawn to quieter, less touristy spots where you can experience authentic Vietnam away from the crowds.`,
       );
     } else {
       parts.push(
-        `You're open to experiencing both famous landmarks and hidden local spots at a ${paceLabels[persona.pace].toLowerCase()} travel pace.`
+        `You're open to experiencing both famous landmarks and hidden local spots at a ${paceLabels[persona.pace].toLowerCase()} travel pace.`,
       );
     }
 
     // Timing + remote work
     if (persona.remote && persona.timing === "morning") {
       parts.push(
-        `As a remote worker and early riser, your itinerary balances productive work sessions with sunrise adventures and morning explorations.`
+        `As a remote worker and early riser, your itinerary balances productive work sessions with sunrise adventures and morning explorations.`,
       );
     } else if (persona.remote) {
       parts.push(
-        `Working remotely during your trip, you'll need reliable WiFi and a flexible schedule that accommodates both work and exploration.`
+        `Working remotely during your trip, you'll need reliable WiFi and a flexible schedule that accommodates both work and exploration.`,
       );
     } else if (persona.timing === "morning") {
       parts.push(
-        `As an early bird, you'll catch magical sunrises and beat the crowds to Vietnam's most spectacular sites.`
+        `As an early bird, you'll catch magical sunrises and beat the crowds to Vietnam's most spectacular sites.`,
       );
     } else if (persona.timing === "evening") {
       parts.push(
-        `You prefer a relaxed morning routine, with your adventures and activities scheduled for afternoons and vibrant evenings.`
+        `You prefer a relaxed morning routine, with your adventures and activities scheduled for afternoons and vibrant evenings.`,
       );
     } else {
       parts.push(
-        `Your flexible schedule allows you to experience Vietnam at all hours - from dawn to dusk.`
+        `Your flexible schedule allows you to experience Vietnam at all hours - from dawn to dusk.`,
       );
     }
 
@@ -398,14 +398,25 @@ export default function PersonaPage() {
                 "Based on your travel persona, we're generating the perfect Vietnam itinerary just for you"
               }
             </p>
-            <Button
-              size="lg"
-              onClick={() => router.push("/result")}
-              className="px-8 h-12 text-base gap-2"
-            >
-              Generate my trip
-              <Sparkles className="w-5 h-5" />
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
+              <Button
+                size="lg"
+                onClick={() => router.push("/result")}
+                className="px-8 h-12 text-base gap-2"
+              >
+                Generate my trip
+                <Sparkles className="w-5 h-5" />
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
+                onClick={() => router.push("/onboarding")}
+                className="px-8 h-12 text-base gap-2 border-2"
+              >
+                <Sparkles className="w-5 h-5" />
+                Create new persona
+              </Button>
+            </div>
           </div>
         </div>
       </main>
