@@ -20,7 +20,8 @@ import { UsersModule } from './users/users.module';
         password: process.env.POSTGRES_PASSWORD ?? 'lotara',
         database: process.env.POSTGRES_DB ?? 'lotara',
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: false, // Changed to false - use migrations instead
+        migrationsRun: true, // Automatically run migrations on startup
       }),
     }),
     UsersModule,
@@ -31,4 +32,4 @@ import { UsersModule } from './users/users.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
