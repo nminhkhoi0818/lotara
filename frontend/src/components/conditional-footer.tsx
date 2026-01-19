@@ -3,7 +3,13 @@
 import { usePathname } from "next/navigation";
 import { Footer } from "./footer";
 
-const PAGES_WITHOUT_FOOTER = ["/onboarding", "/admin", "/explain"];
+const PAGES_WITHOUT_FOOTER = [
+  "/onboarding",
+  "/admin",
+  "/explain",
+  "/login",
+  "/register",
+];
 
 export function ConditionalFooter() {
   const pathname = usePathname();
