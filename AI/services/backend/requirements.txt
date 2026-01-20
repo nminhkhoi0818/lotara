@@ -1,0 +1,38 @@
+# ============================================
+# VERCEL SERVERLESS DEPENDENCIES
+# ============================================
+# Python 3.12 (Vercel default - cannot be changed)
+
+# Core Framework
+fastapi>=0.117.1
+
+# Database (Supabase)
+supabase>=2.0.0
+
+# Validation & Serialization
+pydantic>=2.6.0
+pydantic-settings>=2.1.0
+
+# HTTP Client (used by Supabase)
+httpx>=0.25.0
+
+# ============================================
+# NOTES
+# ============================================
+# - Mangum is NOT needed - Vercel natively supports ASGI
+# - uvicorn is NOT needed - Vercel handles server
+# - Keep dependencies minimal for faster cold starts
+# - Max bundle size: 250MB uncompressed
+httpx>=0.25.0
+
+# Code Quality
+black>=23.12.0
+ruff>=0.1.0
+mypy>=1.7.0
+
+# ============================================
+# OPTIONAL DEPENDENCIES (REMOVED FOR MVP)
+# ============================================
+
+# Logging
+python-json-logger>=2.0.7
