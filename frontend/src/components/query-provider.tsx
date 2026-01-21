@@ -14,6 +14,7 @@ export default function QueryProvider({ children }: Props) {
         defaultOptions: {
           queries: {
             staleTime: 60 * 1000, // 1 minute
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             retry: (failureCount, error: any) => {
               // Don't retry on auth errors
               if (error?.status === 401 || error?.status === 403) {
@@ -24,6 +25,7 @@ export default function QueryProvider({ children }: Props) {
             },
           },
           mutations: {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onError: (error: any) => {
               console.error("Mutation error:", error);
             },

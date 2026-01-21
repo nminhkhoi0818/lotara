@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -99,7 +99,7 @@ const itinerary = [
 ];
 
 export default function ResultPage() {
-  const router = useRouter();
+  // const router = useRouter();
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("cities");
 
@@ -109,7 +109,7 @@ export default function ResultPage() {
       "savedTrips",
       JSON.stringify([
         { name: "My Vietnam Trip", date: new Date().toLocaleDateString() },
-      ])
+      ]),
     );
   };
 
