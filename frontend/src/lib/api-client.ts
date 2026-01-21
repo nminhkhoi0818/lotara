@@ -48,6 +48,7 @@ export const crud = {
   /**
    * POST request - Create new resource
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   post: async <T, D = any>(
     url: string,
     data?: D,
@@ -63,6 +64,7 @@ export const crud = {
   /**
    * PUT request - Update/replace resource
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   put: async <T, D = any>(
     url: string,
     data: D,
@@ -78,6 +80,7 @@ export const crud = {
   /**
    * PATCH request - Partial update
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   patch: async <T, D = any>(
     url: string,
     data: D,
