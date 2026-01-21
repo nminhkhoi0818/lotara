@@ -7,7 +7,7 @@ Provides:
 - Evaluation tools for agent quality assessment
 """
 
-from travel_lotara.core.state_manager import (
+from src.travel_lotara.core.state_manager import (
     SessionState,
     SessionStateManager,
     PersistentMemoryItem,

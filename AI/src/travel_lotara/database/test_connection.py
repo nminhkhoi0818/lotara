@@ -41,7 +41,7 @@ def test_connection():
     # Import and test client
     print("\n2. Testing Supabase client...")
     try:
-        from travel_lotara.database import get_supabase_client
+        from src.travel_lotara.database import get_supabase_client
         client = get_supabase_client()
         print("   ✓ Client initialized successfully")
     except ImportError as e:
@@ -81,7 +81,7 @@ def test_connection():
     # Test repository
     print("\n5. Testing repository pattern...")
     try:
-        from travel_lotara.database import JobRepository
+        from src.travel_lotara.database import JobRepository
         repo = JobRepository()
         print("   ✓ JobRepository initialized")
     except Exception as e:

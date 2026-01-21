@@ -157,7 +157,7 @@ class ProactiveScheduler:
         """
         logger.info(f"Checking price drops for {len(self._price_monitors)} users...")
         
-        from travel_lotara.tools.api_tools import APITools
+        from src.travel_lotara.tools.api_tools import APITools
         api_tools = APITools()
         
         for user_id, monitor_data in self._price_monitors.items():

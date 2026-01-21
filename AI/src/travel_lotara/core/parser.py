@@ -23,7 +23,7 @@ except ImportError:
         "Google Generative AI not installed. Install with: pip install google-generativeai"
     )
 
-from travel_lotara.config.settings import Settings
+from src.travel_lotara.config.settings import Settings
 
 
 logger = logging.getLogger(__name__)

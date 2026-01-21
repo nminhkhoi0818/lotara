@@ -85,12 +85,6 @@ retrieval = [
   "llama-index-embeddings-google-genai>=0.3.0",
 ]
 
-# Infrastructure & execution
-infra = [
-  "docker>=7.0.0",
-  "kubernetes>=29.0.0",
-]
-
 # Web / parsing tools
 web = [
   "beautifulsoup4>=3.2.2",

@@ -1,6 +1,6 @@
 import asyncio
-from travel_lotara.core.eval.judges import WorkflowJudge, SafetyJudge
-from travel_lotara.tracking.opik_tracker import get_opik_manager
+from src.travel_lotara.core.eval.judges import WorkflowJudge, SafetyJudge
+from src.travel_lotara.tracking.opik_tracker import get_opik_manager
 
 async def evaluation_demo():
     print("🎯 EVALUATION DEMO - LLM as Judge\n")

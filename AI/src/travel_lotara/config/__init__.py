@@ -8,7 +8,7 @@ Usage:
     print(settings.model)  # gemini/gemini-2.0-flash
 """
 
-from travel_lotara.config.settings import (
+from src.travel_lotara.config.settings import (
     Settings,
     load_settings,
     get_settings,

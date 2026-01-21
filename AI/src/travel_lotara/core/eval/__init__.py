@@ -22,7 +22,7 @@ Usage:
     scores = await judge.evaluate_workflow(request, response)
 """
 
-from travel_lotara.core.eval.opik_evaluators import (
+from src.travel_lotara.core.eval.opik_evaluators import (
     # Dimensions
     EvalDimension,
     EvalResult,

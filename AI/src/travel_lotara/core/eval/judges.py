@@ -27,8 +27,8 @@ except ImportError:
     genai = None
     logger.warning("Google Generative AI not installed. Install with: pip install google-generativeai")
 
-from travel_lotara.config.settings import Settings, load_settings
-from travel_lotara.tracking.opik_tracker import (
+from src.travel_lotara.config.settings import Settings, load_settings
+from src.travel_lotara.tracking.opik_tracker import (
     get_opik_manager,
     LLMJudgeScore,
 )

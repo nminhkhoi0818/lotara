@@ -39,8 +39,8 @@ from api.models import (
 )
 from core.job_manager import JobManager
 from core.workflow_executor import WorkflowExecutor
-from travel_lotara.tracking.opik_tracker import get_opik_manager
-from travel_lotara.database import get_supabase_client, JobRepository, FeedbackRepository
+from src.travel_lotara.tracking.opik_tracker import get_opik_manager
+from src.travel_lotara.database import get_supabase_client, JobRepository, FeedbackRepository
 
 
 # ============================================

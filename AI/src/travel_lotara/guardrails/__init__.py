@@ -23,7 +23,7 @@ Usage:
     )
 """
 
-from travel_lotara.guardrails.callbacks import (
+from src.travel_lotara.guardrails.callbacks import (
     apply_guardrails_to_agent,
     input_guardrail_callback,
     output_guardrail_callback,
@@ -31,6 +31,11 @@ from travel_lotara.guardrails.callbacks import (
     validate_model_output,
     InputValidationResult,
     OutputValidationResult,
+)
+
+from .features import (
+    input_intent_guard,
+    tool_argument_guard,
 )
 
 __all__ = [

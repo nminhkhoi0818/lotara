@@ -22,11 +22,11 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
-from travel_lotara.core.eval.judges import (
+from src.travel_lotara.core.eval.judges import (
     EvaluationResult,
     JudgeOrchestrator,
 )
-from travel_lotara.tracking.opik_tracker import get_opik_manager
+from src.travel_lotara.tracking.opik_tracker import get_opik_manager
 
 
 logger = logging.getLogger(__name__)

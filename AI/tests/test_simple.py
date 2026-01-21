@@ -1,7 +1,7 @@
 import asyncio
-from travel_lotara.core.parser import get_query_parser
-from travel_lotara.tools.api_tools import APITools
-from travel_lotara.agents.flight_agent.flight_agent import FlightAgent
+from src.travel_lotara.core.parser import get_query_parser
+from src.travel_lotara.tools.api_tools import APITools
+from src.travel_lotara.agents.flight_agent.flight_agent import FlightAgent
 
 async def simple_demo():
     print("🌍 Travel Lotara - Simple Demo\n")

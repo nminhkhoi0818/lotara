@@ -28,7 +28,7 @@ Example with custom spans:
 
 # Re-export from agent.py for convenience
 try:
-    from travel_lotara.agent import opik_tracer, flush_traces, get_tracer
+    from src.travel_lotara.agent import opik_tracer, flush_traces, get_tracer
 
     __all__ = ["opik_tracer", "flush_traces", "get_tracer"]
 except ImportError:

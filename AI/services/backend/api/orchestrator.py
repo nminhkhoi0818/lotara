@@ -54,7 +54,7 @@ class TravelOrchestrator:
             return
         
         try:
-            from travel_lotara.agent import root_agent
+            from src.travel_lotara.agent import root_agent
             self._root_agent = root_agent
             self._agents_loaded = True
             logger.info("Agents loaded successfully")

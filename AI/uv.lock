@@ -1056,9 +1056,9 @@ name = "docker"
 version = "7.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "pywin32", marker = "sys_platform == 'win32'" },
-    { name = "requests" },
-    { name = "urllib3" },
+    { name = "pywin32", marker = "python_full_version == '3.11.*' and sys_platform == 'win32'" },
+    { name = "requests", marker = "python_full_version == '3.11.*'" },
+    { name = "urllib3", marker = "python_full_version == '3.11.*'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/91/9b/4a2ea29aeba62471211598dac5d96825bb49348fa07e906ea930394a83ce/docker-7.1.0.tar.gz", hash = "sha256:ad8c70e6e3f8926cb8a92619b832b4ea5299e2831c14284663184e200546fa6c", size = 117834, upload-time = "2024-05-23T11:13:57.216Z" }
 wheels = [
@@ -2612,15 +2612,15 @@ name = "kubernetes"
 version = "35.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "certifi" },
-    { name = "durationpy" },
-    { name = "python-dateutil" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "requests-oauthlib" },
-    { name = "six" },
-    { name = "urllib3" },
-    { name = "websocket-client" },
+    { name = "certifi", marker = "python_full_version == '3.11.*'" },
+    { name = "durationpy", marker = "python_full_version == '3.11.*'" },
+    { name = "python-dateutil", marker = "python_full_version == '3.11.*'" },
+    { name = "pyyaml", marker = "python_full_version == '3.11.*'" },
+    { name = "requests", marker = "python_full_version == '3.11.*'" },
+    { name = "requests-oauthlib", marker = "python_full_version == '3.11.*'" },
+    { name = "six", marker = "python_full_version == '3.11.*'" },
+    { name = "urllib3", marker = "python_full_version == '3.11.*'" },
+    { name = "websocket-client", marker = "python_full_version == '3.11.*'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/2c/8f/85bf51ad4150f64e8c665daf0d9dfe9787ae92005efb9a4d1cba592bd79d/kubernetes-35.0.0.tar.gz", hash = "sha256:3d00d344944239821458b9efd484d6df9f011da367ecb155dadf9513f05f09ee", size = 1094642, upload-time = "2026-01-16T01:05:27.76Z" }
 wheels = [
@@ -3929,6 +3929,48 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/94/f4/4690ecb5d70023ce6bfcfeabfe717020f654bde59a775058ec6ac4692463/openai-2.15.0.tar.gz", hash = "sha256:42eb8cbb407d84770633f31bf727d4ffb4138711c670565a41663d9439174fba", size = 627383, upload-time = "2026-01-09T22:10:08.603Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b5/df/c306f7375d42bafb379934c2df4c2fa3964656c8c782bac75ee10c102818/openai-2.15.0-py3-none-any.whl", hash = "sha256:6ae23b932cd7230f7244e52954daa6602716d6b9bf235401a107af731baea6c3", size = 1067879, upload-time = "2026-01-09T22:10:06.446Z" },
+]
+
+[[package]]
+name = "openinference-instrumentation"
+version = "0.1.42"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "openinference-semantic-conventions" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/00/d0/b19061a21fd6127d2857c77744a36073bba9c1502d1d5e8517b708eb8b7c/openinference_instrumentation-0.1.42.tar.gz", hash = "sha256:2275babc34022e151b5492cfba41d3b12e28377f8e08cb45e5d64fe2d9d7fe37", size = 23954, upload-time = "2025-11-05T01:37:46.869Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c3/71/43ee4616fc95dbd2f560550f199c6652a5eb93f84e8aa0039bc95c19cfe0/openinference_instrumentation-0.1.42-py3-none-any.whl", hash = "sha256:e7521ff90833ef7cc65db526a2f59b76a496180abeaaee30ec6abbbc0b43f8ec", size = 30086, upload-time = "2025-11-05T01:37:43.866Z" },
+]
+
+[[package]]
+name = "openinference-instrumentation-google-adk"
+version = "0.1.8"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "openinference-instrumentation", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "openinference-semantic-conventions", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "opentelemetry-api", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "opentelemetry-instrumentation", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "opentelemetry-semantic-conventions", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "typing-extensions", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+    { name = "wrapt", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/5d/bd/3958ddd56b4da78006a0deb264d2bc3a437149ff80e9c9ed44c32c58d732/openinference_instrumentation_google_adk-0.1.8.tar.gz", hash = "sha256:b522b296aa8491ed83e9af7bde5f227e455604330398c878cbc4e2ae2943b2ae", size = 11933, upload-time = "2025-12-12T00:59:58.763Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/60/80/0a17f68779a493a2afbc625d7a45c356b2a269a7f7fb5f7124c34bf3b256/openinference_instrumentation_google_adk-0.1.8-py3-none-any.whl", hash = "sha256:4155b814e104b369cb942ff3f8c67def0846072ef9603851fb610e825620bf5f", size = 13736, upload-time = "2025-12-12T00:59:57.549Z" },
+]
+
+[[package]]
+name = "openinference-semantic-conventions"
+version = "0.1.25"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/0b/68/81c8a0b90334ff11e4f285e4934c57f30bea3ef0c0b9f99b65e7b80fae3b/openinference_semantic_conventions-0.1.25.tar.gz", hash = "sha256:f0a8c2cfbd00195d1f362b4803518341e80867d446c2959bf1743f1894fce31d", size = 12767, upload-time = "2025-11-05T01:37:45.89Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/3d/dd14ee2eb8a3f3054249562e76b253a1545c76adbbfd43a294f71acde5c3/openinference_semantic_conventions-0.1.25-py3-none-any.whl", hash = "sha256:3814240f3bd61f05d9562b761de70ee793d55b03bca1634edf57d7a2735af238", size = 10395, upload-time = "2025-11-05T01:37:43.697Z" },
 ]
 
 [[package]]
@@ -6838,6 +6880,8 @@ name = "travel-lotara"
 source = { editable = "." }
 dependencies = [
     { name = "google-adk" },
+    { name = "openinference-instrumentation" },
+    { name = "openinference-instrumentation-google-adk", marker = "python_full_version >= '3.11' and python_full_version < '3.14'" },
     { name = "opik" },
     { name = "pydantic" },
     { name = "pyyaml" },
@@ -6875,10 +6919,6 @@ eval = [
     { name = "tabulate" },
     { name = "tqdm" },
 ]
-infra = [
-    { name = "docker" },
-    { name = "kubernetes" },
-]
 llm = [
     { name = "anthropic" },
     { name = "litellm" },
@@ -6913,12 +6953,10 @@ requires-dist = [
     { name = "autodoc-pydantic", marker = "extra == 'docs'" },
     { name = "beautifulsoup4", marker = "extra == 'web'", specifier = ">=3.2.2" },
     { name = "crewai", extras = ["tools"], marker = "python_full_version == '3.11.*' and extra == 'agents'" },
-    { name = "docker", marker = "extra == 'infra'", specifier = ">=7.0.0" },
     { name = "flit", marker = "extra == 'dev'", specifier = ">=3.10.0" },
     { name = "furo", marker = "extra == 'docs'" },
     { name = "google-adk", specifier = ">=0.1.0" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=6.0.0" },
-    { name = "kubernetes", marker = "extra == 'infra'", specifier = ">=29.0.0" },
     { name = "langgraph", marker = "extra == 'agents'", specifier = ">=0.2.60,<0.4.8" },
     { name = "litellm", marker = "extra == 'llm'", specifier = ">=1.75.5,<2.0.0" },
     { name = "llama-index-embeddings-google-genai", marker = "extra == 'retrieval'", specifier = ">=0.3.0" },
@@ -6927,6 +6965,8 @@ requires-dist = [
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.15.0" },
     { name = "myst-parser", marker = "extra == 'docs'" },
     { name = "openai", marker = "extra == 'test'", specifier = ">=1.100.2" },
+    { name = "openinference-instrumentation", specifier = ">=0.1.34" },
+    { name = "openinference-instrumentation-google-adk", marker = "python_full_version >= '3.11' and python_full_version < '3.14'", specifier = ">=0.1.0" },
     { name = "opentelemetry-instrumentation-google-genai", marker = "extra == 'otel-gcp'", specifier = ">=0.3b0,<1.0.0" },
     { name = "opik", specifier = ">=1.0.0" },
     { name = "pandas", marker = "extra == 'eval'", specifier = ">=2.2.3" },
@@ -6949,7 +6989,7 @@ requires-dist = [
     { name = "toolbox-adk", marker = "extra == 'toolbox'", specifier = ">=0.5.7,<0.6.0" },
     { name = "tqdm", marker = "extra == 'eval'", specifier = ">=4.65.0" },
 ]
-provides-extras = ["agents", "dev", "docs", "eval", "infra", "llm", "otel-gcp", "retrieval", "test", "toolbox", "web"]
+provides-extras = ["agents", "dev", "docs", "eval", "llm", "otel-gcp", "retrieval", "test", "toolbox", "web"]
 
 [[package]]
 name = "ty"

@@ -17,17 +17,23 @@
 import uuid
 
 from google.adk.agents import Agent
+from src.travel_lotara.tools.context_tools.calendar_tool import CalendarTool
 from openinference.instrumentation import using_session
 
-from travel_lotara import prompt
-from travel_lotara.agents.sub_agents import (
+from .prompt import *
+from src.travel_lotara.agents.sub_agents import (
     inspiration_agent,
     planning_agent,
     pre_trip_agent,
 )
-from travel_lotara.tools.adk_memory import _load_precreated_itinerary
+from src.travel_lotara.tools.shared_tools.adk_memory import _load_precreated_itinerary
+from ..tools.context_tools import user_profile_tool 
+from ..guardrails.features import (
+    tool_argument_guard,
+    input_intent_guard
+)
+from src.travel_lotara.config.settings import get_settings
 
-from travel_lotara.config.settings import get_settings
 
 settings = get_settings()
 MODEL_ID = settings.model
@@ -40,11 +46,17 @@ with using_session(session_id=uuid.uuid4()):
         model=MODEL_ID,
         name=ROOT_AGENT_NAME,
         description=ROOT_AGENT_DESCRIPTION,
-        instruction=prompt.ROOT_AGENT_INSTR,
+        instruction=ROOT_AGENT_INSTR,
         sub_agents=[
             inspiration_agent,
             planning_agent,
             pre_trip_agent,
         ],
-        before_agent_callback=_load_precreated_itinerary,
+        tools=[user_profile_tool],
+        # before_agent_callback=_load_precreated_itinerary,
+        before_agent_callback=[
+            {"callback": _load_precreated_itinerary, "priority": 10},
+            {"before_model_callback": input_intent_guard, "priority": 10},
+            {"before_tool_callback": tool_argument_guard, "priority": 5},
+        ],
     )

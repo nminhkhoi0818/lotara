@@ -15,15 +15,17 @@
 """Pre-Trip Agent for providing travel information before the trip."""
 
 
-from google.adk.tools.agent_tool import AgentTool
-from travel_lotara.shared_libraries import types
-from travel_lotara.sub_agents.pre_trip import prompt
-from travel_lotara.tools.search import google_search_grounding
 from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
 
-from travel_lotara.settings import get_settings
-
-from travel_lotara.agents.base_agent import BaseAgent, AgentConfig
+from src.travel_lotara.tools import (
+    calendar_tool, 
+    date_season_tool
+)
+from prompt import *
+from src.travel_lotara.config.settings import get_settings
+from src.travel_lotara.agents.shared_libraries import types
+from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
 
 # GLOBAL SETTINGS
 settings = get_settings()
@@ -40,7 +42,7 @@ budget_and_cost_awareness_config = AgentConfig(
     model=MODEL_ID,
     name=BUDGET_AND_COST_AWARENESS_NAME,
     description=BUDGET_AND_COST_AWARENESS_DESCRIPTION,
-    instruction=prompt.BUDGET_AND_COST_AWARENESS_INSTR,
+    instruction=BUDGET_AND_COST_AWARENESS_INSTR,
     output_key=BUDGET_AND_COST_AWARENESS_OUTPUT_KEY,
     output_schema=types.BudgetAndCostAwarenessPretrip,
 )
@@ -59,7 +61,7 @@ packing_and_prep_config = AgentConfig(
     model=MODEL_ID,
     name=PACKING_AND_PREP_NAME,
     description=PACKING_AND_PREP_DESCRIPTION,
-    instruction=prompt.PACKING_AND_PREP_INSTR,
+    instruction=PACKING_AND_PREP_INSTR,
     output_key=PACKING_AND_PREP_OUTPUT_KEY,
     output_schema=types.PackingAndPrepPretrip,
 )
@@ -78,7 +80,7 @@ readiness_check_config = AgentConfig(
     model=MODEL_ID,
     name=READINESS_CHECK_NAME,
     description=READINESS_CHECK_DESCRIPTION,
-    instruction=prompt.READINESS_CHECK_INSTR,
+    instruction=READINESS_CHECK_INSTR,
     output_key=READINESS_CHECK_OUTPUT_KEY,
     output_schema=types.ReadinessCheckPretrip,
 )
@@ -92,8 +94,10 @@ pretrip_agent_config = AgentConfig(
     model=MODEL_ID,
     name="pretrip_agent",
     description="Provide travel information and preparation guidance before the trip.",
-    instruction=prompt.PRETRIP_AGENT_INSTR,
+    instruction=PRETRIP_AGENT_INSTR,
     tools=[
+        calendar_tool,
+        date_season_tool,
         AgentTool(agent=budget_and_cost_awareness_agent), 
         AgentTool(agent=packing_and_prep_agent),
         AgentTool(agent=readiness_check_agent)

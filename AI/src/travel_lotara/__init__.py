@@ -28,4 +28,4 @@ Project Structure:
 __version__ = "0.1.0"
 
 # Convenience imports
-from travel_lotara.config import get_settings, Settings
+from src.travel_lotara.config import get_settings, Settings

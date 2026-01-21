@@ -15,15 +15,18 @@
 """Planning agent for travel itinerary creation and management."""
 
 
-from google.adk.tools.agent_tool import AgentTool
-from travel_lotara.shared_libraries import types
-from travel_lotara.sub_agents.pre_trip import prompt
-from travel_lotara.tools.search import google_search_grounding
 from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
 
-from travel_lotara.settings import get_settings
+from src.travel_lotara.tools import (
+    calendar_tool, 
+    date_season_tool
+)
 
-from travel_lotara.agents.base_agent import BaseAgent, AgentConfig
+from .prompt import *
+from src.travel_lotara.config.settings import get_settings
+from src.travel_lotara.agents.shared_libraries import types
+from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
 
 # GLOBAL SETTINGS
 settings = get_settings()
@@ -41,7 +44,7 @@ transport_planner_config = AgentConfig(
     model=MODEL_ID,
     name=TRANSPORT_PLANNER_NAME,
     description=TRANSPORT_PLANNER_DESCRIPTION,
-    instruction=prompt.TRANSPORT_PLANNER_INSTR,
+    instruction=TRANSPORT_PLANNER_INSTR,
     output_key=TRANSPORT_PLANNER_OUTPUT_KEY,
     output_schema=types.TransportPlan,
 )
@@ -60,7 +63,7 @@ accomodation_planner_config = AgentConfig(
     model=MODEL_ID,
     name=ACCOMODATION_PLANNER_NAME,
     description=ACCOMODATION_PLANNER_DESCRIPTION,
-    instruction=prompt.ACCOMODATION_PLANNER_INSTR,
+    instruction=ACCOMODATION_PLANNER_INSTR,
     output_key=ACCOMODATION_PLANNER_OUTPUT_KEY,
     output_schema=types.AccomodationPlan,
 )
@@ -80,7 +83,7 @@ itinerary_structuring_config = AgentConfig(
     model=MODEL_ID,
     name=ITINERARY_STRUCTURING_NAME,
     description=ITINERARY_STRUCTURING_DESCRIPTION,
-    instruction=prompt.ITINERARY_STRUCTURING_INSTR,
+    instruction=ITINERARY_STRUCTURING_INSTR,
     output_key=ITINERARY_STRUCTURING_OUTPUT_KEY,
     output_schema=types.ItineraryStructurePlan,
 )
@@ -94,8 +97,10 @@ planning_agent_config = AgentConfig(
     model=MODEL_ID,
     name="planning_agent",
     description="Create and manage travel itineraries based on user preferences and constraints.",
-    instruction=prompt.PLANNING_AGENT_INSTR,
+    instruction=PLANNING_AGENT_INSTR,
     tools=[
+        calendar_tool,
+        date_season_tool,
         AgentTool(agent=transport_planner_agent), 
         AgentTool(agent=accomodation_planner_agent),
         AgentTool(agent=itinerary_structuring_agent)

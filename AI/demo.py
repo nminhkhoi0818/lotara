@@ -41,7 +41,7 @@ def demo_tools():
     print("📦 DEMO 1: Travel Tools")
     print("=" * 70)
     
-    from travel_lotara.tools import (
+    from src.travel_lotara.tools import (
         search_flights,
         search_hotels,
         search_activities,
@@ -88,7 +88,7 @@ def demo_agents():
     print("🤖 DEMO 2: ADK Multi-Agent System")
     print("=" * 70)
     
-    from travel_lotara.agent import (
+    from src.travel_lotara.agent import (
         root_agent,
         flight_agent,
         hotel_agent,
@@ -121,7 +121,7 @@ def demo_guardrails():
     print("🛡️  DEMO 3: Safety Guardrails")
     print("=" * 70)
     
-    from travel_lotara.guardrails import validate_user_input, validate_model_output
+    from src.travel_lotara.guardrails import validate_user_input, validate_model_output
     
     # Test input validation
     test_inputs = [
@@ -161,7 +161,7 @@ def demo_evaluation_metrics():
     print("📊 DEMO 4: Opik Evaluation Metrics")
     print("=" * 70)
     
-    from travel_lotara.core.eval import (
+    from src.travel_lotara.core.eval import (
         WorkflowSuccessMetric,
         SafetyMetric,
         ToolSelectionMetric,
@@ -219,7 +219,7 @@ def demo_golden_tests():
     print("🏆 DEMO 5: Golden Test Suite")
     print("=" * 70)
     
-    from travel_lotara.core.eval import GOLDEN_TEST_CASES
+    from src.travel_lotara.core.eval import GOLDEN_TEST_CASES
     
     print(f"\n📋 {len(GOLDEN_TEST_CASES)} test cases for regression testing:\n")
     
@@ -251,7 +251,7 @@ async def demo_live_agent():
         from google.adk.runners import Runner
         from google.adk.sessions import InMemorySessionService
         from google.genai import types
-        from travel_lotara.agent import root_agent, flush_traces, opik_tracer
+        from src.travel_lotara.agent import root_agent, flush_traces, opik_tracer
         
         print("\n📡 Initializing agent with Opik tracing...")
         
@@ -317,7 +317,7 @@ async def demo_evaluation(agent_response: str):
         print("\n⚠️  No agent response to evaluate.")
         return
     
-    from travel_lotara.core.eval import (
+    from src.travel_lotara.core.eval import (
         WorkflowSuccessMetric,
         SafetyMetric,
         BudgetAdherenceMetric,

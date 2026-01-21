@@ -11,8 +11,8 @@ import logging
 from datetime import datetime
 from typing import Any, Optional, TypeVar, Generic
 
-from travel_lotara.database.client import get_supabase_client, SupabaseClient
-from travel_lotara.database.models import (
+from src.travel_lotara.database.client import get_supabase_client, SupabaseClient
+from src.travel_lotara.database.models import (
     JobRecord,
     SessionRecord,
     FeedbackRecord,
