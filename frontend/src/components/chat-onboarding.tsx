@@ -5,183 +5,8 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatBubble } from "@/components/chat-bubble";
 import { Loader2, ArrowRight } from "lucide-react";
-
-interface ConversationStep {
-  id: string;
-  question: string;
-  key: keyof typeof initialAnswers;
-  options?: { label: string; value: string }[];
-  type: "free-text" | "options";
-}
-
-const conversationSteps: ConversationStep[] = [
-  {
-    id: "intro",
-    question:
-      "Hi there! I'm Lotus, your AI travel companion. I'm excited to help you plan your perfect Vietnam trip. Let's start with the most important question - how long will you be traveling in Vietnam?",
-    key: "duration",
-    type: "options",
-    options: [
-      { label: "3-5 days (quick trip)", value: "short" },
-      { label: "1-2 weeks (standard trip)", value: "medium" },
-      { label: "2-4 weeks (extended trip)", value: "long" },
-      { label: "1 month+ (long-term travel)", value: "extended" },
-    ],
-  },
-  {
-    id: "companions",
-    question: "Great! Now, who will be joining you on this adventure?",
-    key: "companions",
-    type: "options",
-    options: [
-      { label: "Just me (solo adventure)", value: "solo" },
-      { label: "My partner (couple's trip)", value: "couple" },
-      { label: "Family with young children", value: "family_kids" },
-      { label: "Family (adults only)", value: "family_adults" },
-      { label: "Friends group", value: "friends" },
-    ],
-  },
-  {
-    id: "budget",
-    question:
-      "Perfect! What's your daily budget per person? (including accommodation, food, and activities)",
-    key: "budget",
-    type: "options",
-    options: [
-      { label: "Budget ($20-50/day)", value: "budget" },
-      { label: "Mid-range ($50-100/day)", value: "midrange" },
-      { label: "Comfortable ($100-200/day)", value: "comfortable" },
-      { label: "Luxury ($200+/day)", value: "luxury" },
-    ],
-  },
-  {
-    id: "pace",
-    question: "Excellent! What's your preferred travel pace?",
-    key: "pace",
-    type: "options",
-    options: [
-      { label: "Slow & deep - stay longer in fewer places", value: "slow" },
-      {
-        label: "Balanced - mix of exploration and relaxation",
-        value: "balanced",
-      },
-      { label: "Fast-paced - see as much as possible", value: "fast" },
-    ],
-  },
-  {
-    id: "travelStyle",
-    question:
-      "What's your TOP priority for this trip? (we'll personalize everything around this!)",
-    key: "travelStyle",
-    type: "options",
-    options: [
-      { label: "Adventure & outdoor activities", value: "adventure" },
-      { label: "Culture & history immersion", value: "cultural" },
-      { label: "Nature, beaches & scenic beauty", value: "nature" },
-      { label: "Food & culinary experiences", value: "food" },
-      { label: "Relaxation & wellness", value: "wellness" },
-      { label: "Photography & Instagram-worthy spots", value: "photography" },
-    ],
-  },
-  {
-    id: "activity",
-    question: "How physically active do you want to be during your trip?",
-    key: "activity",
-    type: "options",
-    options: [
-      {
-        label: "Relaxed pace - minimal walking, mostly transport",
-        value: "low",
-      },
-      {
-        label: "Moderately active - comfortable walking & light activities",
-        value: "medium",
-      },
-      {
-        label: "Very active - hiking, biking, full-day adventures",
-        value: "high",
-      },
-    ],
-  },
-  {
-    id: "crowds",
-    question: "How do you feel about tourist crowds and popular hotspots?",
-    key: "crowds",
-    type: "options",
-    options: [
-      {
-        label: "Avoid crowds - prefer hidden gems & local spots",
-        value: "avoid",
-      },
-      { label: "Mix of both - main sights + off-beaten-path", value: "mixed" },
-      {
-        label: "Embrace crowds - don't miss the iconic spots",
-        value: "embrace",
-      },
-    ],
-  },
-  {
-    id: "accommodation",
-    question: "What type of accommodation suits you best?",
-    key: "accommodation",
-    type: "options",
-    options: [
-      {
-        label: "Hostels & guesthouses - social & budget-friendly",
-        value: "hostel",
-      },
-      {
-        label: "Standard hotels - clean, comfortable & reliable",
-        value: "standard",
-      },
-      {
-        label: "Boutique hotels - unique character & charm",
-        value: "boutique",
-      },
-      { label: "Luxury resorts & 5-star hotels", value: "premium" },
-    ],
-  },
-  {
-    id: "remote",
-    question: "Will you need to work remotely, or is this a full vacation?",
-    key: "remote",
-    type: "options",
-    options: [
-      { label: "Yes, I need reliable WiFi for work", value: "yes" },
-      { label: "No, I'm fully unplugging", value: "no" },
-    ],
-  },
-  {
-    id: "timing",
-    question: "Last one! When do you prefer to explore and do activities?",
-    key: "timing",
-    type: "options",
-    options: [
-      {
-        label: "Early mornings - sunrise adventures & beat the crowds",
-        value: "morning",
-      },
-      { label: "Flexible - spread throughout the day", value: "flexible" },
-      {
-        label: "Late start - sleep in, afternoons & evenings",
-        value: "evening",
-      },
-    ],
-  },
-];
-
-const initialAnswers = {
-  duration: "",
-  companions: "",
-  budget: "",
-  pace: "",
-  travelStyle: "",
-  activity: "",
-  crowds: "",
-  accommodation: "",
-  remote: "",
-  timing: "",
-};
+import { userService } from "@/services/user.service";
+import { questionService, Question } from "@/services/question.service";
 
 interface ChatMessage {
   id: string;
@@ -193,16 +18,13 @@ interface ChatMessage {
 export function ChatOnboarding() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "1",
-      text: conversationSteps[0].question,
-      isBot: true,
-      timestamp: new Date(),
-    },
-  ]);
-  const [answers, setAnswers] = useState(initialAnswers);
+  const [conversationSteps, setConversationSteps] = useState<Question[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -212,6 +34,33 @@ export function ChatOnboarding() {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  useEffect(() => {
+    const fetchQuestions = async () => {
+      try {
+        const questions = await questionService.getQuestions();
+        const sortedQuestions = questions.sort(
+          (a, b) => a.orderIndex - b.orderIndex,
+        );
+        setConversationSteps(sortedQuestions);
+        if (sortedQuestions.length > 0) {
+          setMessages([
+            {
+              id: "1",
+              text: sortedQuestions[0].question,
+              isBot: true,
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch questions:", error);
+      } finally {
+        setLoadingQuestions(false);
+      }
+    };
+    fetchQuestions();
+  }, []);
 
   const handleOptionSelect = async (value: string) => {
     const currentQuestion = conversationSteps[currentStep];
@@ -258,25 +107,52 @@ export function ChatOnboarding() {
     }, 600);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     const formattedAnswers = {
-      duration: answers.duration,
-      companions: answers.companions,
-      budget: answers.budget,
-      pace: answers.pace,
-      travelStyle: answers.travelStyle,
-      activity: answers.activity,
-      crowds: answers.crowds,
-      accommodation: answers.accommodation,
+      duration: answers.duration || "",
+      companions: answers.companions || "",
+      budget: answers.budget || "",
+      pace: answers.pace || "",
+      travelStyle: answers.travelStyle || "",
+      activity: answers.activity || "",
+      crowds: answers.crowds || "",
+      accommodation: answers.accommodation || "",
       remote: answers.remote === "yes",
-      timing: answers.timing,
+      timing: answers.timing || "",
     };
-    localStorage.setItem("personaAnswers", JSON.stringify(formattedAnswers));
-    router.push("/persona");
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await userService.submitOnboarding(formattedAnswers);
+      localStorage.setItem("personaAnswers", JSON.stringify(formattedAnswers));
+      if (response.userId) {
+        localStorage.setItem("userId", response.userId);
+      }
+      router.push("/persona");
+    } catch (error) {
+      console.error("Failed to submit onboarding:", error);
+      setSubmitError("Failed to save your preferences. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
+  if (loadingQuestions || conversationSteps.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading your questions...</p>
+        </div>
+      </div>
+    );
+  }
+
   const isCompleted =
-    currentStep === conversationSteps.length - 1 && answers.timing !== "";
+    currentStep === conversationSteps.length - 1 &&
+    !!answers[conversationSteps[currentStep]?.key];
   const currentQuestion = conversationSteps[currentStep];
 
   return (
@@ -318,13 +194,28 @@ export function ChatOnboarding() {
                   }
                 </p>
               </div>
+              {submitError && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 text-center">
+                  <p className="text-sm text-destructive">{submitError}</p>
+                </div>
+              )}
               <Button
                 onClick={handleContinue}
+                disabled={isSubmitting}
                 size="lg"
                 className="w-full gap-2 h-12 font-semibold"
               >
-                See Your Travel Persona
-                <ArrowRight className="w-5 h-5" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Saving Your Preferences...
+                  </>
+                ) : (
+                  <>
+                    See Your Travel Persona
+                    <ArrowRight className="w-5 h-5" />
+                  </>
+                )}
               </Button>
             </div>
           ) : (

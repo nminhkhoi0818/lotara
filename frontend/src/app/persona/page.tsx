@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, MapPin, Briefcase, Clock } from "lucide-react";
+import { Sparkles, MapPin, Briefcase, Clock, Loader2 } from "lucide-react";
+import { recommendService } from "@/services/recommend.service";
 
 interface PersonaAnswers {
   duration: string;
@@ -23,6 +24,8 @@ export default function PersonaPage() {
   const router = useRouter();
   const [persona, setPersona] = useState<PersonaAnswers | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generateError, setGenerateError] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("personaAnswers");
@@ -229,6 +232,28 @@ export default function PersonaPage() {
 
   const personaSummary = persona ? generatePersonaSummary() : "";
 
+  const handleGenerateTrip = async () => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      setGenerateError("User ID not found. Please complete onboarding again.");
+      return;
+    }
+
+    setIsGenerating(true);
+    setGenerateError(null);
+
+    try {
+      const recommendations = await recommendService.getRecommendations(userId);
+      localStorage.setItem("recommendations", JSON.stringify(recommendations));
+      router.push("/result");
+    } catch (error) {
+      console.error("Failed to generate recommendations:", error);
+      setGenerateError("Failed to generate your trip. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-linear-to-br from-background to-background">
       <main className="flex-1">
@@ -398,14 +423,29 @@ export default function PersonaPage() {
                 "Based on your travel persona, we're generating the perfect Vietnam itinerary just for you"
               }
             </p>
+            {generateError && (
+              <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6 max-w-xl mx-auto">
+                <p className="text-sm text-destructive">{generateError}</p>
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-3 items-center justify-center">
               <Button
                 size="lg"
-                onClick={() => router.push("/result")}
+                onClick={handleGenerateTrip}
+                disabled={isGenerating}
                 className="px-8 h-12 text-base gap-2"
               >
-                Generate my trip
-                <Sparkles className="w-5 h-5" />
+                {isGenerating ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Generating your trip...
+                  </>
+                ) : (
+                  <>
+                    Generate my trip
+                    <Sparkles className="w-5 h-5" />
+                  </>
+                )}
               </Button>
               <Button
                 size="lg"
