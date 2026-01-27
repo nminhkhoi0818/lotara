@@ -9,5 +9,4 @@ __all__ = [
     "user_profile_tool",
     "date_season_tool",
     "calendar_tool",
-    "visa_tool",
 ]

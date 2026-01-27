@@ -16,23 +16,26 @@
 
 import uuid
 
-from google.adk.agents import Agent
-from src.travel_lotara.tools.context_tools.calendar_tool import CalendarTool
+from google.adk.agents.llm_agent import LlmAgent
+from google.adk.agents import SequentialAgent
+from src.travel_lotara.tools import _load_precreated_itinerary
 from openinference.instrumentation import using_session
 
 from .prompt import *
 from src.travel_lotara.agents.sub_agents import (
     inspiration_agent,
     planning_agent,
-    pre_trip_agent,
+    pretrip_agent,
 )
-from src.travel_lotara.tools.shared_tools.adk_memory import _load_precreated_itinerary
 from ..tools.context_tools import user_profile_tool 
-from ..guardrails.features import (
-    tool_argument_guard,
-    input_intent_guard
-)
 from src.travel_lotara.config.settings import get_settings
+from src.travel_lotara.agents.callbacks import (
+    before_agent_callback, 
+    before_tool_callback,
+    after_agent_callback
+    # after_tool_callback
+)
+from src.travel_lotara.agents.shared_libraries import OutputMessage
 
 
 settings = get_settings()
@@ -42,21 +45,18 @@ ROOT_AGENT_DESCRIPTION = "A Travel Conceirge using the services of multiple sub-
 
 
 with using_session(session_id=uuid.uuid4()):
-    root_agent = Agent(
-        model=MODEL_ID,
+    root_agent = SequentialAgent(
         name=ROOT_AGENT_NAME,
-        description=ROOT_AGENT_DESCRIPTION,
-        instruction=ROOT_AGENT_INSTR,
         sub_agents=[
             inspiration_agent,
             planning_agent,
-            pre_trip_agent,
+            # pretrip_agent,
         ],
-        tools=[user_profile_tool],
-        # before_agent_callback=_load_precreated_itinerary,
-        before_agent_callback=[
-            {"callback": _load_precreated_itinerary, "priority": 10},
-            {"before_model_callback": input_intent_guard, "priority": 10},
-            {"before_tool_callback": tool_argument_guard, "priority": 5},
-        ],
+        # SequentialAgent accepts minimal parameters - just name and sub_agents
+        # Callbacks and other configurations should be set on sub-agents
     )
+
+# Instrument with Opik tracing (automatically instruments all sub-agents)
+from src.travel_lotara.tracking import get_tracer
+tracer = get_tracer()
+tracer.instrument_agent(root_agent)

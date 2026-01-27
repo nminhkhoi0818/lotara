@@ -1,5 +1,6 @@
 # travel_lotara/tools/context_tools/calendar_tool.py
 
+from abc import abstractmethod
 from datetime import datetime, timedelta
 from google.adk.tools import ToolContext, FunctionTool
 from ..base_tool import BaseTool
@@ -7,12 +8,13 @@ from ..base_tool import BaseTool
 class CalendarTool(BaseTool):
     """Expands trip dates into structured calendar days."""
 
-    @staticmethod
-    def run(tool_context: ToolContext):
+    name = "calendar_tool"
+
+    def run(self, tool_context: ToolContext):
         state = tool_context.state
 
-        start = datetime.fromisoformat(state["trip_start_date"])
-        end = datetime.fromisoformat(state["trip_end_date"])
+        start = datetime.fromisoformat(state["start_date"])
+        end = datetime.fromisoformat(state["end_date"])
 
         days = []
         current = start
@@ -33,8 +35,10 @@ class CalendarTool(BaseTool):
         return {"total_days": len(days), "calendar": days}
 
 
+def get_trip_calendar(tool_context: ToolContext):
+    """Generate trip calendar from start and end dates."""
+    return CalendarTool().run(tool_context)
+
 calendar_tool = FunctionTool(
-    # display_name="calendar_tool",
-    func=CalendarTool.run,
-    # description="Generates a detailed calendar for the trip based on start and end dates.",
+    func=get_trip_calendar,
 )

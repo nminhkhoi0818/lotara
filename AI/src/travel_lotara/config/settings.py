@@ -54,8 +54,8 @@ def load_settings() -> Settings:
         gemini_api_key=os.getenv("GEMINI_API_KEY"),
         
         # Model (LiteLLM format)
-        model=os.getenv("LOTARA_MODEL", "gemini/gemini-2.5-flash"),
-        
+        model=os.getenv("LOTARA_MODEL", "gemini-2.5-flash"),
+
         # Budgets
         default_budget_usd=float(os.getenv("DEFAULT_BUDGET_USD", "1000")),
         default_budget_tokens=int(os.getenv("DEFAULT_BUDGET_TOKENS", "100000")),

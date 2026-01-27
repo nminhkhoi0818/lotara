@@ -1,0 +1,36 @@
+{
+  "state": {
+    "user_context": {
+        "userId": "test-user-123",
+        "duration": "medium",
+        "companions": "solo",
+        "budget": "midrange",
+        "pace": "balanced",
+        "travelStyle": "cultural",
+        "activity": "medium",
+        "crowds": "mixed",
+        "accommodation": "standard",
+        "remote": false,
+        "timing": "flexible"
+    },
+    "itinerary": {
+      "trip_name": "",
+      "start_date": "",
+      "end_date": "",
+      "origin": "",
+      "destination": "",
+      "total_days": "",
+      "average_ratings": "",
+      "trip_overview": []
+    },
+    "origin": "",
+    "destination": "",    
+    "start_date": "",
+    "end_date": "",    
+    "itinerary_start_date" : "",
+    "itinerary_end_date" : "",
+    "total_days": 0,
+    "average_budget_spend_per_day": "",
+    "average_ratings": "" 
+  }
+}

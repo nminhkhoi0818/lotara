@@ -1,4 +1,5 @@
 # travel_lotara/tools/context_tools/date_season_tool.py
+from abc import abstractmethod
 from datetime import datetime
 from ..base_tool import BaseTool
 from google.adk.tools import ToolContext, FunctionTool
@@ -6,11 +7,10 @@ from google.adk.tools import ToolContext, FunctionTool
 class DateSeasonTool(BaseTool):
     """Derives season and travel context from dates."""
 
-    @staticmethod
-    def run(tool_context: ToolContext):
+    def run(self, tool_context: ToolContext):
         state = tool_context.state
 
-        start_date = datetime.fromisoformat(state["trip_start_date"])
+        start_date = datetime.fromisoformat(state["start_date"])
         month = start_date.month
 
         # Vietnam-specific seasons
@@ -35,8 +35,10 @@ class DateSeasonTool(BaseTool):
         return travel_context
 
 
+def get_date_season_context(tool_context: ToolContext):
+    """Derive season and travel context from trip dates."""
+    return DateSeasonTool().run(tool_context)
+
 date_season_tool = FunctionTool(
-    # display_name="date_season_tool",
-    func=DateSeasonTool.run,
-    # description="Derives travel season and context from trip start date.",
+    func=get_date_season_context,
 )

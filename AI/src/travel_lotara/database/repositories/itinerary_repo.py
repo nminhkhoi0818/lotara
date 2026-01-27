@@ -1,10 +1,10 @@
 # travel_lotara/database/repositories/itinerary_repo.py
 
-from ..client import SupabaseClient
+from ..client import get_supabase_client
 
 class ItineraryRepository:
     def __init__(self):
-        self.db = SupabaseClient.get_client()
+        self.db = get_supabase_client()
 
     def save_itinerary(self, user_id: str, itinerary: list[dict]):
         self.db.table("itineraries").insert({

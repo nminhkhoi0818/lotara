@@ -1,10 +1,10 @@
 # travel_lotara/db/repositories/destination_repo.py
 
-from ..client import SupabaseClient
+from ..client import get_supabase_client
 
 class DestinationRepository:
     def __init__(self):
-        self.db = SupabaseClient.get_client()
+        self.db = get_supabase_client()
 
     def search_by_interests(
         self,

@@ -1,0 +1,135 @@
+{
+  "state": {
+    "user_profile": {
+        "userId": "test-user-123",
+        "duration": "medium",
+        "companions": "solo",
+        "budget": "midrange",
+        "pace": "balanced",
+        "travelStyle": "cultural",
+        "activity": "medium",
+        "crowds": "mixed",
+        "accommodation": "standard",
+        "remote": false,
+        "timing": "flexible"
+    },
+    "itinerary": {
+      "trip_name": "Summer Trip to Tokyo",
+      "start_date": "2025-06-15",
+      "end_date": "2025-06-16",
+      "origin": "Ho Chi Minh City, Vietnam",
+      "destination": "Tokyo, Japan",
+      "total_days": "2",
+      "average_ratings": "4.8",
+      "trip_overview": [
+        {
+          "trip_number": 1,
+          "start_date": "2025-06-15",
+          "end_date": "2025-06-16",
+          "summary": "Arrival in Tokyo, hotel check-in, visit Senso-ji Temple and Tokyo Tower.",
+          "events": [
+            {
+              "event_type": "flight",
+              "description": "Flight from Ho Chi Minh City to Tokyo",
+              "departure_time": "08:00 AM UTC+7",
+              "arrival_time": "02:00 PM UTC+9",
+              "budget": "300 USD",
+              "keywords": ["flight", "Ho Chi Minh City", "Tokyo"],
+              "average_timespan": "6 hours",
+              "image_url": ""
+            },
+            {
+              "event_type": "hotel_checkin",
+              "description": "Check-in at Tokyo Central Hotel",
+              "location": {
+                "name": "Tokyo Central Hotel",
+                "address": "1-1-1 Shinjuku, Tokyo, Japan"
+              },
+              "start_time": "03:00 PM UTC+9",
+              "end_time": "03:30 PM UTC+9",
+              "budget": "150 USD per night",
+              "keywords": ["hotel", "Tokyo Central Hotel", "check-in", "Tokyo"],
+              "average_timespan": "30 minutes",
+              "image_url": ""
+            },
+            {
+              "event_type": "visit",
+              "description": "Visit to Senso-ji Temple",
+              "start_time": "07:00 PM UTC+9",
+              "end_time": "08:30 PM UTC+9",
+              "budget": "50 USD",
+              "keywords": ["visit", "Senso-ji Temple", "Tokyo"],
+              "average_timespan": "1.5 hours",
+              "image_url": ""
+            },
+            {
+              "event_type": "visit",
+              "description": "Visit to Tokyo Tower",
+              "start_time": "09:00 PM UTC+9",
+              "end_time": "10:30 PM UTC+9",
+              "budget": "50 USD",
+              "keywords": ["visit", "Tokyo Tower", "Tokyo"],
+              "average_timespan": "1.5 hours",
+              "image_url": ""
+            }
+          ]
+        },
+        {
+          "trip_number": 2,
+          "start_date": "2025-06-16",
+          "end_date": "2025-06-16",
+          "summary": "Visit to Meiji Shrine, hotel check-out, flight back to Ho Chi Minh City.",
+          "events": [
+            {
+              "event_type": "visit",
+              "description": "Visit to Meiji Shrine",
+              "start_time": "09:00 AM UTC+9",
+              "end_time": "11:00 AM UTC+9",
+              "location": {
+                "name": "Meiji Shrine",
+                "address": "1-1 Yoyogikamizonocho, Shibuya City, Tokyo, Japan"
+              },
+              "budget": "58 USD",
+              "keywords": ["visit", "Meiji Shrine", "Tokyo"],
+              "average_timespan": "2 hours",
+              "image_url": ""
+            },
+            {
+              "event_type": "hotel_checkout",
+              "description": "Check-out from Tokyo Central Hotel",
+              "location": {
+                "name": "Tokyo Central Hotel",
+                "address": "1-1-1 Shinjuku, Tokyo, Japan"
+              },
+              "start_time": "11:00 AM UTC+9",
+              "end_time": "11:30 AM UTC+9",
+              "budget": "0 USD",
+              "keywords": ["hotel", "Tokyo Central Hotel", "check-out", "Tokyo"],
+              "average_timespan": "30 minutes",
+              "image_url": ""
+            },
+            {
+              "event_type": "flight",
+              "description": "Flight from Tokyo to Ho Chi Minh City",
+              "departure_time": "02:00 PM UTC+9",
+              "arrival_time": "06:00 PM UTC+7",
+              "budget": "300 USD",
+              "keywords": ["flight", "Tokyo", "Ho Chi Minh City"],
+              "average_timespan": "6 hours",
+              "image_url": ""
+            }
+          ]
+        }
+      ]
+    },
+    "origin": "Ho Chi Minh City, Vietnam",
+    "destination": "Tokyo, Japan",    
+    "start_date": "2025-06-15",
+    "end_date": "2025-06-17",    
+    "itinerary_start_date" : "2025-06-15",
+    "itinerary_end_date" : "2025-06-17",
+    "total_days": 2,
+    "average_budget_spend_per_day": "400 USD",
+    "average_ratings": "4.8" 
+  }
+}

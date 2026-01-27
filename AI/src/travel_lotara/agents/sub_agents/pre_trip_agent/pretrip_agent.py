@@ -22,9 +22,13 @@ from src.travel_lotara.tools import (
     calendar_tool, 
     date_season_tool
 )
-from prompt import *
+from .prompt import *
 from src.travel_lotara.config.settings import get_settings
-from src.travel_lotara.agents.shared_libraries import types
+from src.travel_lotara.agents.shared_libraries import (
+    BudgetAndCostAwarenessPretrip,
+    PackingAndPrepPretrip,
+    ReadinessCheckPretrip,
+)
 from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
 
 # GLOBAL SETTINGS
@@ -44,7 +48,7 @@ budget_and_cost_awareness_config = AgentConfig(
     description=BUDGET_AND_COST_AWARENESS_DESCRIPTION,
     instruction=BUDGET_AND_COST_AWARENESS_INSTR,
     output_key=BUDGET_AND_COST_AWARENESS_OUTPUT_KEY,
-    output_schema=types.BudgetAndCostAwarenessPretrip,
+    output_schema=BudgetAndCostAwarenessPretrip,
 )
 budget_and_cost_awareness_agent = BaseAgent(
     config=budget_and_cost_awareness_config
@@ -63,7 +67,7 @@ packing_and_prep_config = AgentConfig(
     description=PACKING_AND_PREP_DESCRIPTION,
     instruction=PACKING_AND_PREP_INSTR,
     output_key=PACKING_AND_PREP_OUTPUT_KEY,
-    output_schema=types.PackingAndPrepPretrip,
+    output_schema=PackingAndPrepPretrip,
 )
 packing_and_prep_agent = BaseAgent(
     config=packing_and_prep_config
@@ -82,7 +86,7 @@ readiness_check_config = AgentConfig(
     description=READINESS_CHECK_DESCRIPTION,
     instruction=READINESS_CHECK_INSTR,
     output_key=READINESS_CHECK_OUTPUT_KEY,
-    output_schema=types.ReadinessCheckPretrip,
+    output_schema=ReadinessCheckPretrip,
 )
 readiness_check_agent = BaseAgent(
     config=readiness_check_config

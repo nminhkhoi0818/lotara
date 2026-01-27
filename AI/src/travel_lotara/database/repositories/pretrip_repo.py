@@ -1,11 +1,11 @@
 # travel_lotara/database/repositories/pretrip_repo.py
 
 from datetime import datetime, timedelta
-from ..client import SupabaseClient
+from ..client import get_supabase_client
 
 class PreTripRepository:
     def __init__(self):
-        self.db = SupabaseClient.get_client()
+        self.db = get_supabase_client()
 
     # ---------- Generic cache ----------
     def _make_key(self, category: str, **kwargs) -> str:

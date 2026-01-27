@@ -4,15 +4,13 @@ Database module for Travel Lotara.
 Provides Supabase integration for persistent storage.
 """
 
-from src.travel_lotara.database.client import get_supabase_client, SupabaseClient
-from src.travel_lotara.database.repositories import (
-    JobRepository,
-    SessionRepository,
-    FeedbackRepository,
-    UserPreferenceRepository,
+from .client import get_supabase_client, SupabaseClient
+from .repositories import (
+    DestinationRepository,
+    PreTripRepository,
     ItineraryRepository,
 )
-from src.travel_lotara.database.models import (
+from .models import (
     JobRecord,
     SessionRecord,
     FeedbackRecord,
@@ -27,11 +25,9 @@ __all__ = [
     "get_supabase_client",
     "SupabaseClient",
     # Repositories
-    "JobRepository",
-    "SessionRepository",
-    "FeedbackRepository",
-    "UserPreferenceRepository",
+    "DestinationRepository",
     "ItineraryRepository",
+    "PreTripRepository",
     # Models
     "JobRecord",
     "SessionRecord",

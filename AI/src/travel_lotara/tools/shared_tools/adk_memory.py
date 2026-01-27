@@ -22,11 +22,20 @@ from typing import Any, Dict
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.sessions.state import State
 from google.adk.tools import ToolContext
-from travel_concierge.shared_libraries import constants
+from src.travel_lotara.agents.shared_libraries import (
+    SYSTEM_TIME,
+    ITIN_INITIALIZED,
+    ITIN_KEY,
+    ITIN_START_DATE,
+    ITIN_END_DATE,
+    ITIN_DATETIME,
+    START_DATE,
+    END_DATE,
+)
 
 SAMPLE_SCENARIO_PATH = os.getenv(
     "TRAVEL_LOTARA_SAMPLE_SCENARIO",
-    "travel_lotara/profiles/itinerary_empty_default.json",
+    "src/travel_lotara/agents/profiles/itinerary_empty_default.json",
 )
 
 
@@ -89,24 +98,29 @@ def forget(key: str, value: str, tool_context: ToolContext):
 def _set_initial_states(source: Dict[str, Any], target: State | dict[str, Any]):
     """
     Setting the initial session state given a JSON object of states.
-
-    Args:
-        source: A JSON object of states.
-        target: The session state object to insert into.
     """
-    if constants.SYSTEM_TIME not in target:
-        target[constants.SYSTEM_TIME] = str(datetime.now())
 
-    if constants.ITIN_INITIALIZED not in target:
-        target[constants.ITIN_INITIALIZED] = True
+    # System metadata
+    if SYSTEM_TIME not in target:
+        target[SYSTEM_TIME] = str(datetime.now())
 
-        target.update(source)
+    # Prevent double init
+    if ITIN_INITIALIZED in target:
+        return
 
-        itinerary = source.get(constants.ITIN_KEY, {})
-        if itinerary:
-            target[constants.ITIN_START_DATE] = itinerary[constants.START_DATE]
-            target[constants.ITIN_END_DATE] = itinerary[constants.END_DATE]
-            target[constants.ITIN_DATETIME] = itinerary[constants.START_DATE]
+    target[ITIN_INITIALIZED] = True
+
+    # Merge base state
+    target.update(source)
+
+    itinerary = source.get(ITIN_KEY, {})
+    if not itinerary:
+        return
+
+    if itinerary:
+        target[ITIN_START_DATE] = itinerary[START_DATE]
+        target[ITIN_END_DATE] = itinerary[END_DATE]
+        target[ITIN_DATETIME] = itinerary[START_DATE]
 
 
 def _load_precreated_itinerary(callback_context: CallbackContext):
@@ -118,9 +132,15 @@ def _load_precreated_itinerary(callback_context: CallbackContext):
     Args:
         callback_context: The callback context.
     """
+    # Only load sample data if state is empty (not set by backend JSON)
+    # Check if origin or destination are already populated
+    if callback_context.state.get("origin") or callback_context.state.get("destination"):
+        print(f"\n[INFO] State already populated from backend JSON, skipping sample data load\n")
+        return
+    
     data = {}
     with open(SAMPLE_SCENARIO_PATH, "r") as file:
         data = json.load(file)
-        print(f"\nLoading Initial State: {data}\n")
+        print(f"\nLoading Initial State from sample: {data}\n")
 
     _set_initial_states(data["state"], callback_context.state)

@@ -15,15 +15,15 @@
 
 """Common data schema and types for travel-concierge agents."""
 
-from typing import Optional, Union, List, Dict
+from typing import Annotated, Any, Optional, Union, List, Dict, Literal
 
 from google.genai import types
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Discriminator, Field
 
 # Convenient declaration for controlled generation.
 json_response_config = types.GenerateContentConfig(
     response_mime_type="application/json"
-)
+).model_dump()
 
 
 ##########################  PLANNING AGENT 
@@ -37,6 +37,9 @@ class TransportSegment(BaseModel):
     estimated_duration_hours: Optional[float] = Field(
         None, description="Estimated travel duration in hours"
     )
+    cost_estimate_usd: Optional[float] = Field(
+        None, description="Estimated cost in USD"
+    )
     comfort_level: Optional[str] = Field(
         None, description="Comfort level (low, medium, high)"
     )
@@ -46,7 +49,7 @@ class TransportSegment(BaseModel):
 
 
 class TransportPlan(BaseModel):
-    segments: list[TransportSegment] = Field(
+    transport_plan: list[TransportSegment] = Field(
         ..., description="List of transport segments for the trip"
     )
 
@@ -225,27 +228,185 @@ class ConstraintAlignmentPlan(BaseModel):
 # =========================================================
 ########################### USER PROFILE TYPE (ROOT INPUT)
 
+class UserHomeLocation(BaseModel):
+    city: str = Field(
+        default="Ho Chi Minh City",
+        description="Home city of the user"
+    )
+    country: str = Field(
+        default="Vietnam",
+        description="Home country of the user"
+    )
+    timezone: Optional[str] = Field(
+        default="Asia/Ho_Chi_Minh",
+        description="Home timezone of the user"
+    )
+
+class UserPreferences(BaseModel):        
+    likes: List[str] = Field(..., description="User's likes")
+    foods: List[str] = Field(..., description="User's food preferences")
+    activities: List[str] = Field(..., description="User's activities")
+    pace: str = Field(..., description="User's preferred travel pace")
+
+class UserConstraints(BaseModel):
+    mobility: List[str] = Field(..., description="User's mobility constraints")
+    dietary: List[str] = Field(..., description="User's dietary constraints")
+    time_limit_days: str = Field(..., description="User's time limit in days")
+    dislikes: List[str] = Field(..., description="User's dislikes")
+    allergies: List[str] = Field(..., description="User's allergies")
 
 class UserProfile(BaseModel):
-    name: Optional[str]
-    travel_companions: str = Field(
-        ..., description="solo / couple / family / friends"
+    travel_style: str = Field(..., description="User's preferred travel style")
+    budget_range: str = Field(..., description="User's budget range")
+    group_type: str = Field(..., description="User's group type")
+    preferences: Optional[UserPreferences | Any] = Field(default=None, description="User's preferences")
+    constraints: Optional[UserConstraints | Any] = Field(default=None, description="User's constraints")
+    home_location: Optional[UserHomeLocation | Any] = Field(default=None, description="User's home location details")
+
+# ########################### Itinerary TYPE (ROOT INPUT)
+
+class LocationActivity(BaseModel):
+    name: str = Field(description="Name of the location or activity")
+    address: str = Field(description="Address of the location or activity")
+
+
+class FlightEvents(BaseModel):
+    event_type: Literal["flight"] = Field(description="Type of event, e.g., 'visit', 'activity', etc.")
+    description: str = Field(description="Description of the flight event")
+    departure_time: str = Field(description="Departure time of the flight event")
+    arrival_time: str = Field(description="Arrival time of the flight event")
+    budget: str = Field(description="Budget for the flight event")
+    keywords: Optional[List[str]] = Field(description="Keywords related to the flight event")
+    average_timespan: str = Field(description="Average timespan of the flight event")
+    image_url: Optional[str] = Field(description="Image URL for the flight event")
+
+class VisitEvents(BaseModel):
+    event_type : Literal["visit"] = Field(
+        description="Type of event, e.g., 'visit', 'activity', etc."
     )
-    budget_tier: str = Field(
-        ..., description="budget / mid-range / luxury"
+    description: str = Field(description="Description of the visit event")
+    start_time: str = Field(description="Start time of the visit event")
+    end_time: str = Field(description="End time of the visit event")
+    location: LocationActivity = Field(description="Location details of the visit event")
+    budget: str = Field(description="Budget for the visit event")
+    keywords: Optional[List[str]] = Field(description="Keywords related to the visit event")
+    average_timespan: str = Field(description="Average timespan of the visit event")
+    image_url: Optional[str] = Field(description="Image URL for the visit event")
+
+
+
+class ActivityEvents(BaseModel):
+    event_type : Literal["hotel_checkin"] | Literal["hotel_checkout"] = Field(
+        description="Type of event, e.g., 'visit', 'activity', etc."
     )
-    trip_duration_days: int
-    travel_pace: Optional[str] = Field(
-        None, description="slow / balanced / active"
-    )
-    interests: List[str] = Field(
-        ..., description="food, culture, nature, beach, nightlife, adventure"
-    )
-    crowd_preference: Optional[str] = Field(
-        None, description="avoid crowds / neutral / love crowds"
-    )
-    remote_work_required: Optional[bool] = False
-    flexibility_level: Optional[str] = Field(
-        None, description="low / medium / high"
+    description: str = Field(description="Description of the visit event")
+    location: LocationActivity = Field(description="Location details of the visit event")
+    start_time: str = Field(description="Start time of the visit event")
+    end_time: str = Field(description="End time of the visit event")
+    budget: str = Field(description="Budget for the visit event")
+    keywords: Optional[List[str]] = Field(description="Keywords related to the visit event")
+    average_timespan: str = Field(description="Average timespan of the visit event")
+    image_url: Optional[str] = Field(description="Image URL for the visit event")
+
+
+# Generic Event model that can represent any event type
+class GenericEvent(BaseModel):
+    event_type: str = Field(description="Type of event: flight, visit, hotel_checkin, hotel_checkout, etc.")
+    description: str = Field(description="Description of the event")
+    start_time: Optional[str] = Field(None, description="Start time of the event")
+    end_time: Optional[str] = Field(None, description="End time of the event")
+    departure_time: Optional[str] = Field(None, description="Departure time (for flights)")
+    arrival_time: Optional[str] = Field(None, description="Arrival time (for flights)")
+    location_name: Optional[str] = Field(None, description="Name of the location")
+    location_address: Optional[str] = Field(None, description="Address of the location")
+    budget: str = Field(description="Budget for the event")
+    keywords: Optional[List[str]] = Field(None, description="Keywords related to the event")
+    average_timespan: str = Field(description="Average duration of the event")
+    image_url: Optional[str] = Field(None, description="Image URL for the event")
+
+
+class TripOverviewItinerary(BaseModel):
+    trip_number: int = Field(description="Sequential trip number")
+    summary: str = Field(description="Brief summary of the trip")
+    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
+    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
+    events: List[GenericEvent] = Field(
+        description="List of events for the trip day."
     )
 
+class Itinerary(BaseModel):
+    trip_name: str = Field(description="Name of the trip")
+    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
+    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
+    origin: str = Field(description="Trip origin location")
+    destination: str = Field(description="Trip destination location")
+    total_days: str = Field(description="Total number of days for the trip")
+    average_ratings: str = Field(description="Average ratings of the trip")
+    trip_overview: List[TripOverviewItinerary] = Field(
+        description="Overview of the trip with daily summaries and events."
+    )
+
+
+
+# ########################### TRIP CONTEXT TYPE (ROOT INPUT)
+
+class TripContextInput(BaseModel):
+  userId: str = Field(..., description="Unique user identifier")
+  duration: Optional[str] = Field(..., description="Trip duration category")
+  companions: Optional[str] = Field(..., description="Type of travel companions")
+  budget: Optional[str] = Field(..., description="Budget category")
+  pace: Optional[str] = Field(..., description="Travel pace preference")
+  travelStyle: Optional[str] = Field(..., description="Preferred travel style")
+  activity: Optional[str] = Field(..., description="Activity level preference")
+  crowds: Optional[str] = Field(..., description="Crowd preference")
+  accommodation: Optional[str] = Field(..., description="Accommodation standard")
+  remote: Optional[bool] = Field(..., description="Remote work required")
+  timing: Optional[str] = Field(..., description="Timing flexibility")
+
+
+# ########################### OUTPUT MESSAGE TYPE (ROOT OUTPUT)
+
+class AnswerFormat(BaseModel):
+    location_name: str = Field(..., description="Name of the location suggested")
+    description: str = Field(..., description="Description of the location suggested")
+    rating: float = Field(..., description="Rating of the location suggested")
+    total_days: int = Field(..., description="Total days recommended for the location")
+    average_budget_spend_per_day: float = Field(..., description="Average cost per day in USD for the location")
+    image_url: Optional[str] = Field(None, description="Image URL representing the location suggested")
+    key_words: List[str] = Field(..., description="List of keywords associated with the location suggested")
+    trip_overview: List[TripOverviewItinerary] = Field(
+        description="Overview of the trip with daily summaries and events"
+    )
+
+
+class OutputMessage(BaseModel):
+    answers: AnswerFormat = Field(
+        ..., 
+        description="Output message from the agent with location details"
+    )
+
+
+class TravelConcept(BaseModel):
+    concept_name: str = Field(..., description="Name of the travel concept")
+    core_vibe: str = Field(..., description="Core vibe of the travel concept")
+    primary_interests: List[str] = Field(..., description="Primary interests for this concept")
+    signature_experiences: List[str] = Field(..., description="Signature experiences")
+    pace_style: str = Field(..., description="Pace style for this concept")
+
+class PlanningConstraints(BaseModel):
+    preferred_pace: str = Field(..., description="Preferred travel pace")
+    crowd_tolerance: str = Field(..., description="Tolerance for crowds")
+    experience_density: str = Field(..., description="Density of experiences")
+    transition_tolerance: str = Field(..., description="Tolerance for transitions")
+
+class Inpsiration_Output(BaseModel):
+    traveler_persona: str = Field(..., description="Inferred traveler persona")
+    recommended_regions: list[str] = Field(..., description="Recommended regions to visit")
+    travel_concepts: List[TravelConcept] = Field(
+        ..., 
+        description="List of travel concepts with details"
+    )
+    planning_constraints: PlanningConstraints = Field(
+        ..., 
+        description="Planning constraints for the trip"
+    )

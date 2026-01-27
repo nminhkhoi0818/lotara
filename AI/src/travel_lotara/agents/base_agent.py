@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional, Type
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field,  ConfigDict
 
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
-
+from google.adk.tools import FunctionTool
 
 
 class AgentConfig(BaseModel):
@@ -26,7 +26,7 @@ class AgentConfig(BaseModel):
         default="You are an AI agent.",
         description="Instructions guiding the agent's behavior"
     )
-    tools : Optional[list[AgentTool]] = Field(
+    tools : Optional[list[AgentTool | FunctionTool]] = Field(
         default=None,
         description="List of tools available to the agent"
     )
@@ -47,6 +47,15 @@ class AgentConfig(BaseModel):
         description="Pydantic schema class for the agent's structured output"
     )
 
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True
+    )
+
+    generate_content_config : Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Additional configuration for content generation"
+    )
+
 class BaseAgent:
     def __init__(self, config: AgentConfig) -> None:
         """Initialize the agent with the given configuration."""
@@ -56,13 +65,14 @@ class BaseAgent:
         self.name = config.name
         self.description = config.description
         self.instruction = config.instruction
+        self.tools = config.tools or []
         self.disallow_transfer_to_parent = config.disallow_transfer_to_parent
         self.disallow_transfer_to_peers = config.disallow_transfer_to_peers
         self.output_key = config.output_key
         self.output_schema = config.output_schema
+        self.generate_content_config = config.generate_content_config
 
 
-    @abstractmethod
     def create_agent(self) -> Agent:
         """Create an agent with the given configuration."""
         return Agent(
@@ -70,10 +80,12 @@ class BaseAgent:
             name=self.name,
             description=self.description,
             instruction=self.instruction,
+            tools=self.tools,
             disallow_transfer_to_parent=self.disallow_transfer_to_parent,
             disallow_transfer_to_peers=self.disallow_transfer_to_peers,
             output_key=self.output_key,
             output_schema=self.output_schema,
+            generate_content_config=self.generate_content_config,
         )
     
 
