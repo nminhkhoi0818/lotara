@@ -40,6 +40,7 @@ from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
 # GLOBAL SETTINGS
 settings = get_settings()
 MODEL_ID = settings.model
+print(f"[DEBUG] Inspiration Agent using model: {MODEL_ID}")
 
 # ## Constants for Destination Discovery Agent
 # DESTINATION_DISCOVERY_NAME = "destination_discovery_agent"

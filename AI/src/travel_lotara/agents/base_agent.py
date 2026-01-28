@@ -7,6 +7,8 @@ from pydantic import BaseModel, Field,  ConfigDict
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools import FunctionTool
+from google.adk.tools.base_tool import BaseTool
+from google.genai import types
 
 
 class AgentConfig(BaseModel):
@@ -26,7 +28,7 @@ class AgentConfig(BaseModel):
         default="You are an AI agent.",
         description="Instructions guiding the agent's behavior"
     )
-    tools : Optional[list[AgentTool | FunctionTool]] = Field(
+    tools : Optional[list[AgentTool | FunctionTool | BaseTool]] = Field(
         default=None,
         description="List of tools available to the agent"
     )
@@ -75,6 +77,18 @@ class BaseAgent:
 
     def create_agent(self) -> Agent:
         """Create an agent with the given configuration."""
+        # Apply retry options for 429/503 handling
+        generate_config = self.generate_content_config or types.GenerateContentConfig()
+        
+        # Set default retry options if not already configured
+        if not hasattr(generate_config, 'http_options') or generate_config.http_options is None:
+            generate_config.http_options = types.HttpOptions(
+                retry_options=types.HttpRetryOptions(
+                    initial_delay=60,  # Start with 60s delay for 429 errors
+                    attempts=5  # Try up to 5 times before giving up
+                )
+            )
+        
         return Agent(
             model=self.model_name,
             name=self.name,
@@ -85,7 +99,7 @@ class BaseAgent:
             disallow_transfer_to_peers=self.disallow_transfer_to_peers,
             output_key=self.output_key,
             output_schema=self.output_schema,
-            generate_content_config=self.generate_content_config,
+            generate_content_config=generate_config,
         )
     
 

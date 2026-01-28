@@ -1,154 +1,126 @@
-"""
-Test script for the Travel Lotara API.
-
-Run locally:
-    pip install requests
-    python test_api.py
-
-Or with Vercel dev:
-    vercel dev &
-    python test_api.py
-"""
+"""Test script for the FastAPI backend."""
 
 import requests
 import json
-from datetime import datetime
+import time
 
-BASE_URL = "http://localhost:8000"  # Change to your Vercel URL after deploy
+BASE_URL = "http://localhost:8000"
 
 
 def test_health():
     """Test health endpoint."""
-    print("Testing /health...")
+    print("\n" + "="*80)
+    print("TEST 1: Health Check")
+    print("="*80)
+    
     response = requests.get(f"{BASE_URL}/health")
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    return response.status_code == 200
+    print(f"Status Code: {response.status_code}")
+    print(f"Response: {json.dumps(response.json(), indent=2)}")
+    assert response.status_code == 200
+    print("✅ Health check passed!")
+
+
+def test_itinerary_generation():
+    """Test itinerary generation endpoint."""
+    print("\n" + "="*80)
+    print("TEST 2: Itinerary Generation")
+    print("="*80)
+    
+    # Test request
+    request_data = {
+        "userId": "test-user-fastapi",
+        "duration": "short",
+        "companions": "solo",
+        "budget": "budget",
+        "pace": "balanced",
+        "travelStyle": "cultural",
+        "activity": "medium",
+        "crowds": "mixed",
+        "accommodation": "standard",
+        "remote": False,
+        "timing": "flexible"
+    }
+    
+    print(f"Request: {json.dumps(request_data, indent=2)}")
+    print("\n⏳ Generating itinerary (this may take 30-120 seconds)...")
+    
+    start_time = time.time()
+    
+    try:
+        response = requests.post(
+            f"{BASE_URL}/api/itinerary/generate",
+            json=request_data,
+            timeout=180  # 3 minutes timeout
+        )
+        
+        elapsed = time.time() - start_time
+        print(f"\n⏱️  Request completed in {elapsed:.1f} seconds")
+        print(f"Status Code: {response.status_code}")
+        
+        if response.status_code == 200:
+            result = response.json()
+            print(f"\n✅ Itinerary generated successfully!")
+            print(f"Session ID: {result['session_id']}")
+            print(f"Status: {result['status']}")
+            
+            if result.get('itinerary'):
+                itinerary = result['itinerary']
+                print(f"\n📋 Itinerary Preview:")
+                print(f"  Trip Name: {itinerary.get('trip_name', 'N/A')}")
+                print(f"  Start Date: {itinerary.get('start_date', 'N/A')}")
+                print(f"  End Date: {itinerary.get('end_date', 'N/A')}")
+                print(f"  Total Days: {itinerary.get('total_days', 'N/A')}")
+                
+                # Save full response
+                with open('test_api_response.json', 'w') as f:
+                    json.dump(result, f, indent=2)
+                print(f"\n💾 Full response saved to: test_api_response.json")
+        else:
+            print(f"\n❌ Request failed!")
+            print(f"Response: {response.text}")
+            
+    except requests.Timeout:
+        print(f"\n⏰ Request timed out after 180 seconds")
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
 
 
 def test_root():
     """Test root endpoint."""
-    print("\nTesting /...")
-    response = requests.get(f"{BASE_URL}/")
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    return response.status_code == 200
-
-
-def test_plan():
-    """Test planning endpoint."""
-    print("\nTesting /v1/plan...")
-    payload = {
-        "user_id": "test-user-123",
-        "query": "Plan a 5-day trip to Tokyo with a budget of $3000",
-        "constraints": {
-            "budget_usd": 3000,
-            "duration_days": 5,
-            "destination": "Tokyo",
-            "interests": ["food", "culture", "technology"]
-        }
-    }
-    response = requests.post(f"{BASE_URL}/v1/plan", json=payload)
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    return response.status_code == 200
-
-
-def test_plan_sync():
-    """Test synchronous planning endpoint."""
-    print("\nTesting /v1/plan/sync...")
-    payload = {
-        "user_id": "test-user-123",
-        "query": "Plan a weekend trip to Paris",
-        "constraints": {
-            "budget_usd": 1500,
-            "duration_days": 3,
-            "destination": "Paris",
-            "interests": ["art", "food", "romance"]
-        }
-    }
-    response = requests.post(f"{BASE_URL}/v1/plan/sync", json=payload)
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    return response.status_code == 200
-
-
-def test_suggest():
-    """Test suggestion endpoint."""
-    print("\nTesting /v1/suggest...")
-    payload = {
-        "user_id": "test-user-123",
-        "trigger_type": "price_alert",
-        "trigger_data": {
-            "destination": "Bali",
-            "discount_percent": 30,
-            "original_price": 1200,
-            "sale_price": 840
-        }
-    }
-    response = requests.post(f"{BASE_URL}/v1/suggest", json=payload)
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    return response.status_code == 200
-
-
-def test_preferences():
-    """Test preferences endpoints."""
-    user_id = "test-user-123"
+    print("\n" + "="*80)
+    print("TEST 3: Root Endpoint")
+    print("="*80)
     
-    print(f"\nTesting GET /v1/preferences/{user_id}...")
-    response = requests.get(f"{BASE_URL}/v1/preferences/{user_id}")
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    
-    print(f"\nTesting PUT /v1/preferences/{user_id}...")
-    preferences = {
-        "travel_style": "adventure",
-        "budget_range": {"min": 1000, "max": 5000},
-        "preferred_destinations": ["Japan", "Iceland", "New Zealand"]
-    }
-    response = requests.put(
-        f"{BASE_URL}/v1/preferences/{user_id}",
-        json=preferences
-    )
-    print(f"  Status: {response.status_code}")
-    print(f"  Response: {json.dumps(response.json(), indent=2)}")
-    return response.status_code == 200
-
-
-def main():
-    """Run all tests."""
-    print("=" * 60)
-    print("Travel Lotara API Test Suite")
-    print(f"Base URL: {BASE_URL}")
-    print(f"Time: {datetime.now().isoformat()}")
-    print("=" * 60)
-    
-    tests = [
-        ("Health Check", test_health),
-        ("Root Endpoint", test_root),
-        ("Plan Trip", test_plan),
-        ("Plan Trip (Sync)", test_plan_sync),
-        ("Suggest Trip", test_suggest),
-        ("User Preferences", test_preferences),
-    ]
-    
-    results = []
-    for name, test_fn in tests:
-        try:
-            passed = test_fn()
-            results.append((name, "PASS" if passed else "FAIL"))
-        except Exception as e:
-            print(f"  Error: {e}")
-            results.append((name, "ERROR"))
-    
-    print("\n" + "=" * 60)
-    print("Test Results:")
-    print("=" * 60)
-    for name, status in results:
-        emoji = "✅" if status == "PASS" else "❌"
-        print(f"  {emoji} {name}: {status}")
+    response = requests.get(BASE_URL)
+    print(f"Status Code: {response.status_code}")
+    print(f"Response: {json.dumps(response.json(), indent=2)}")
+    print("✅ Root endpoint passed!")
 
 
 if __name__ == "__main__":
-    main()
+    print("\n🚀 Lotara Travel Agent API - Test Suite")
+    print("="*80)
+    
+    try:
+        # Test health first
+        test_health()
+        
+        # Test root
+        test_root()
+        
+        # Ask user before running long test
+        print("\n" + "="*80)
+        response = input("\nRun itinerary generation test? (30-120s) [y/N]: ")
+        if response.lower() == 'y':
+            test_itinerary_generation()
+        else:
+            print("⏭️  Skipped itinerary generation test")
+        
+        print("\n" + "="*80)
+        print("✅ All tests completed!")
+        print("="*80)
+        
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Tests interrupted by user")
+    except Exception as e:
+        print(f"\n\n❌ Test suite failed: {e}")

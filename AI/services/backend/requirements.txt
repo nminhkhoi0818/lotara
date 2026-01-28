@@ -1,38 +1,16 @@
-# ============================================
-# VERCEL SERVERLESS DEPENDENCIES
-# ============================================
-# Python 3.12 (Vercel default - cannot be changed)
+# Core FastAPI dependencies
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
 
-# Core Framework
-fastapi>=0.117.1
+# Python dotenv for environment variables
+python-dotenv>=1.0.0
 
-# Database (Supabase)
-supabase>=2.0.0
-
-# Validation & Serialization
+# Core agent dependencies (from main pyproject.toml)
+PyYAML>=6.0.3
 pydantic>=2.6.0
-pydantic-settings>=2.1.0
-
-# HTTP Client (used by Supabase)
-httpx>=0.25.0
-
-# ============================================
-# NOTES
-# ============================================
-# - Mangum is NOT needed - Vercel natively supports ASGI
-# - uvicorn is NOT needed - Vercel handles server
-# - Keep dependencies minimal for faster cold starts
-# - Max bundle size: 250MB uncompressed
-httpx>=0.25.0
-
-# Code Quality
-black>=23.12.0
-ruff>=0.1.0
-mypy>=1.7.0
-
-# ============================================
-# OPTIONAL DEPENDENCIES (REMOVED FOR MVP)
-# ============================================
-
-# Logging
-python-json-logger>=2.0.7
+opik>=1.0.0
+google-adk>=0.1.0
+supabase>=2.0.0
+openinference-instrumentation-google-adk>=0.1.0
+openinference-instrumentation>=0.1.34

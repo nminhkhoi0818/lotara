@@ -22,8 +22,7 @@ from google.adk.tools.agent_tool import AgentTool
 from src.travel_lotara.tools import (
     calendar_tool, 
     date_season_tool,
-    memorize,
-    google_search_grounding_tool
+    memorize
 )
 
 from .prompt import *
@@ -35,10 +34,12 @@ from src.travel_lotara.agents.shared_libraries import (
     Itinerary,
 )
 from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
+from google.adk.tools import google_search
 
 # GLOBAL SETTINGS
 settings = get_settings()
 MODEL_ID = settings.model
+print(f"[DEBUG] Planning Agent using model: {MODEL_ID}")
 
 # ## Constants for Transport Planner Agent
 # TRANSPORT_PLANNER_NAME = "transport_planner_agent"
@@ -113,6 +114,31 @@ MODEL_ID = settings.model
 # ).create_agent()
 
 
+
+## Constants for Itinerary Structuring Agent
+GOOGLE_SEARCH_NAME = "google_search_agent"
+GOOGLE_SEARCH_DESCRIPTION = "Perform Google searches to gather up-to-date information for itinerary planning about specified local attractions, locations, events, and activities."
+GOOGLE_SEARCH_OUTPUT_KEY = "google_search_results"
+GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PEERS = True
+GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PARENT = True
+
+# Google Search Agent Tool
+google_search_config = AgentConfig(
+    model=MODEL_ID,
+    name=GOOGLE_SEARCH_NAME,
+    description=GOOGLE_SEARCH_DESCRIPTION,
+    instruction=GOOGLE_SEARCH_INSTR,
+    disallow_transfer_to_parent=GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PARENT,
+    disallow_transfer_to_peers=GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PEERS,
+    output_key=GOOGLE_SEARCH_OUTPUT_KEY,
+    tools=[google_search],
+    # output_schema=ItineraryStructurePlan,
+    # generate_content_config=json_response_config,
+)
+google_search_agent = BaseAgent(
+    config=google_search_config
+).create_agent()
+
 ## Planning Agent
 planning_agent_config = AgentConfig(
     model=MODEL_ID,
@@ -124,10 +150,11 @@ planning_agent_config = AgentConfig(
         # AgentTool(agent=transport_planner_agent), 
         # AgentTool(agent=accomodation_planner_agent),
         # AgentTool(agent=itinerary_structuring_agent),
-        google_search_grounding_tool,
+        # google_search,  # Already a GoogleSearchTool, don't wrap in FunctionTool
+        # AgentTool(agent=google_search_agent),
         calendar_tool,
         date_season_tool,
-        FunctionTool(func=memorize), 
+        FunctionTool(func=memorize),  # memorize is a function, must wrap in FunctionTool
     ],
     output_key="itinerary",
 )

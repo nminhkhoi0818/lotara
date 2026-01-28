@@ -178,7 +178,7 @@ async def test_backend_input():
     print(f"Backend Input: {json.dumps(backend_json, indent=2)}\n")
     
     try:
-        response = await run_agent(
+        response, session = await run_agent(
             user_input="",
             user_id=backend_json.get("userId"),
             backend_json=backend_json,

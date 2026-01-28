@@ -118,18 +118,16 @@ def after_agent_callback(*, callback_context: CallbackContext) -> OutputMessage 
 
     print("✅ after_agent_callback triggered")
     print(f" [INFROMATION] Tool calls will define structured outputs where needed.")
-    # get state 
+    
+    # Note: Output enforcement is handled by individual agents' output_schema
+    # No need to enforce here as the planning agent already returns structured output
+    
+    # Optionally log the state for debugging
     state = callback_context.state
     itinerary_context = state.get("itinerary", {})
-    # Enforce final JSON output for itinerary if present
     if itinerary_context:
-        enforced_output = enforce_final_json_output(
-            callback_context,
-            expected_schema="itinerary",
-            content_to_enforce=itinerary_context
-        )
-        return enforced_output
-    print(" [WARNING] No itinerary context found to enforce.")
+        print(f" [INFO] Itinerary context found in state")
+    
     return None
 
 

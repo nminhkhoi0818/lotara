@@ -5,6 +5,13 @@ from __future__ import annotations
 import os
 from pydantic import BaseModel, Field
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not required if env vars are set systemically
+
 
 class Settings(BaseModel):
     """Application settings loaded from environment variables."""
@@ -18,8 +25,8 @@ class Settings(BaseModel):
     google_api_key: str | None = Field(default=None)
     gemini_api_key: str | None = Field(default=None)  # Alias for google_api_key
     
-    # Model Configuration (LiteLLM format)
-    model: str = Field(default="gemini/gemini-2.5-flash")
+    # Model Configuration - Use direct model name for ADK, not LiteLLM format
+    model: str = Field(default="gemini-2.5-flash")
     
     # Budget Defaults
     default_budget_usd: float = Field(default=1000.0, ge=0.0)
@@ -80,6 +87,8 @@ _settings: Settings | None = None
 def get_settings() -> Settings:
     """Get cached settings instance."""
     global _settings
+    # Force reload for debugging - TODO: Remove this after testing
+    _settings = None
     if _settings is None:
         _settings = load_settings()
     return _settings

@@ -1,56 +1,52 @@
-"""
-Proper entry point for the backend server.
+"""Entry point for running the FastAPI application."""
 
-Usage:
-    cd services/backend
-    python run.py
-
-Or from project root:
-    python services/backend/run.py
-"""
-
-import sys
 import os
+import sys
 from pathlib import Path
 
-# Add the backend directory and project root to Python path
-backend_dir = Path(__file__).parent.resolve()
-services_dir = backend_dir.parent
-project_root = services_dir.parent
+# Add parent directory to Python path
+backend_dir = Path(__file__).parent
+sys.path.insert(0, str(backend_dir.parent.parent))
 
-# Add paths in correct order
-sys.path.insert(0, str(backend_dir))  # For local imports (api, core)
-sys.path.insert(0, str(project_root))  # For travel_lotara imports
+# Load environment variables
+try:
+    from dotenv import load_dotenv
+    env_path = backend_dir.parent.parent / ".env"
+    load_dotenv(env_path)
+    print(f"[INIT] Loaded environment from: {env_path}")
+except ImportError:
+    print("[INIT] python-dotenv not installed, using system environment")
 
-print("=" * 60)
-print("🚀 Travel Lotara AI Backend")
-print("=" * 60)
-print(f"Backend directory: {backend_dir}")
-print(f"Project root: {project_root}")
-print(f"Python path configured ✓")
-print()
 
-if __name__ == "__main__":
+def main():
+    """Run the FastAPI application with uvicorn."""
     import uvicorn
     
-    # Import the app after path is set
-    from main import app
-    
-    # Configuration
+    # Get configuration from environment
     host = os.getenv("API_HOST", "0.0.0.0")
-    port = int(os.getenv("API_PORT", 8000))
+    port = int(os.getenv("API_PORT", "8000"))
+    workers = int(os.getenv("API_WORKERS", "1"))
+    reload = os.getenv("ENVIRONMENT", "development") == "development"
     
-    print(f"Starting server on {host}:{port}")
-    print(f"API Documentation: http://localhost:{port}/docs")
-    print(f"Health Check: http://localhost:{port}/health")
-    print("=" * 60)
-    print()
+    print(f"[INIT] Starting Lotara Travel Agent API")
+    print(f"[INIT] Host: {host}:{port}")
+    print(f"[INIT] Workers: {workers}")
+    print(f"[INIT] Reload: {reload}")
+    print(f"[INIT] Environment: {os.getenv('ENVIRONMENT', 'development')}")
+    print(f"[INIT] Model: {os.getenv('LOTARA_MODEL', 'gemini-2.5-flash')}")
     
-    # Run the server
     uvicorn.run(
-        app,
+        "api.app:app",
         host=host,
         port=port,
-        reload=True,
+        workers=workers if not reload else 1,  # Single worker for reload mode
+        reload=reload,
         log_level="info"
     )
+
+
+if __name__ == "__main__":
+    main()
+
+    # To run the app, use the command:
+    # uv run services/backend/run.py
