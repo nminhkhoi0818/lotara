@@ -41,8 +41,6 @@ def before_agent_callback(*, callback_context: CallbackContext):
         itinerary = ctx.state.get("itinerary", {})
         ctx.state["itinerary"] = {
             "destination": itinerary.get("destination"),
-            "start_date": itinerary.get("start_date"),
-            "end_date": itinerary.get("end_date"),
             "total_days": itinerary.get("total_days"),
             "status": itinerary.get("meta", {}).get("status") if itinerary.get("meta") else None,
         }
@@ -125,8 +123,6 @@ def after_agent_callback(*, callback_context: CallbackContext) -> OutputMessage 
         # Ensure all required top-level fields exist
         required_fields = {
             "trip_name": itinerary.get("trip_name", "Untitled Trip"),
-            "start_date": itinerary.get("start_date", state.get("start_date", "2025-01-01")),
-            "end_date": itinerary.get("end_date", state.get("end_date", "2025-01-01")),
             "origin": itinerary.get("origin", state.get("origin", "Unknown")),
             "destination": itinerary.get("destination", state.get("destination", "Unknown")),
             "total_days": str(itinerary.get("total_days", state.get("total_days", "0"))),
@@ -160,7 +156,7 @@ def after_agent_callback(*, callback_context: CallbackContext) -> OutputMessage 
                     print(f" [ERROR] trip_overview[{idx}] is not a dict")
                     continue
                 
-                required_trip_fields = ["trip_number", "start_date", "end_date", "summary", "events"]
+                required_trip_fields = ["trip_number", "summary", "events"]
                 missing_trip_fields = [f for f in required_trip_fields if f not in trip]
                 if missing_trip_fields:
                     print(f" [WARNING] Trip {idx} missing fields: {missing_trip_fields}")

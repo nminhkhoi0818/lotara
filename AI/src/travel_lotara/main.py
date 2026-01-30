@@ -77,17 +77,10 @@ async def run_agent(
     )
     
     # Set default values for required context variables
-    # Use defaults that won't break template substitution
-    default_start = datetime.now() + timedelta(days=14)
-    default_end = default_start + timedelta(days=10)
-    
-    session.state["origin"] = "Ho Chi Minh City, Vietnam"
-    session.state["destination"] = "Vietnam"
-    session.state["start_date"] = default_start.strftime("%Y-%m-%d")
-    session.state["end_date"] = default_end.strftime("%Y-%m-%d")
+    # Dates will be determined by agents based on user input
+    session.state["origin"] = ""
+    session.state["destination"] = ""
     session.state["total_days"] = "10"
-    session.state["itinerary_start_date"] = default_start.strftime("%Y-%m-%d")
-    session.state["itinerary_end_date"] = default_end.strftime("%Y-%m-%d")
     session.state["average_budget_spend_per_day"] = "$50-100"
     session.state["user_profile"] = {}
     session.state["itinerary"] = {}

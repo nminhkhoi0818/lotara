@@ -16,29 +16,27 @@
 
 import uuid
 
-from google.adk.agents.llm_agent import LlmAgent
 from google.adk.agents import SequentialAgent
 from google.genai import types
-# Lazy import to avoid circular dependency
-# from src.travel_lotara.tools import _load_precreated_itinerary
 from openinference.instrumentation import using_session
 
 from .prompt import *
 from src.travel_lotara.agents.sub_agents import (
+    pre_agent,
     inspiration_agent,
     planning_agent,
-    # pretrip_agent,
-    refactoring_output_agent
 )
-from ..tools.context_tools import user_profile_tool 
 from src.travel_lotara.config.settings import get_settings
 from src.travel_lotara.agents.callbacks import (
-    before_agent_callback, 
-    before_tool_callback,
     after_agent_callback
-    # after_tool_callback
 )
 from src.travel_lotara.agents.shared_libraries import OutputMessage
+
+# Tracing 
+from src.travel_lotara.tracking import get_tracer
+from src.travel_lotara.agents.tracing_config import (
+    setup_agent_tracing
+)
 
 
 settings = get_settings()
@@ -46,31 +44,20 @@ MODEL_ID = settings.model
 ROOT_AGENT_NAME = "travel_lotara_root_agent"
 ROOT_AGENT_DESCRIPTION = "A Travel Conceirge using the services of multiple sub-agents"
 
-# Configure retry options for handling 429/503 errors
-retry_config = types.GenerateContentConfig(
-    http_options=types.HttpOptions(
-        retry_options=types.HttpRetryOptions(
-            initial_delay=60,  # 60s initial delay for rate limits
-            attempts=5  # Try up to 5 times at ADK level
-        )
-    )
-)
-
 
 with using_session(session_id=uuid.uuid4()):
     # SequentialAgent requires name and sub_agents
-    # All agents must run sequentially - only the final agent (refactoring_output_agent) has output_schema
+    # Flow: pre_agent → inspiration_agent → planning_agent
+    # Only planning_agent has output_schema (Itinerary)
     root_agent = SequentialAgent(
         name=ROOT_AGENT_NAME,
         sub_agents=[
+            pre_agent,
             inspiration_agent,
             planning_agent,
-            refactoring_output_agent
         ],
         after_agent_callback=after_agent_callback,
     )
 
 # Instrument with Opik tracing (automatically instruments all sub-agents)
-from src.travel_lotara.tracking import get_tracer
-tracer = get_tracer()
-tracer.instrument_agent(root_agent)
+setup_agent_tracing(root_agent, environment=settings.project_environment)

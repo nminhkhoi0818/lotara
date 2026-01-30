@@ -21,6 +21,19 @@ Forward structured state
 NO creative output
 
 """
+
+# Root Agent Prompt Metadata
+ROOT_AGENT_METADATA = {
+    "agent_name": "root_agent",
+    "version": "1.0.0",
+    "role": "router",
+    "description": "Routes user requests to appropriate sub-agents based on intent analysis",
+    "last_updated": "2026-01-30",
+    "variables": ["user_context", "origin", "destination", "start_date", "end_date"],
+    "category": "orchestration",
+    "tags": ["router", "sequential", "intent-analysis"]
+}
+
 ROOT_AGENT_INSTR = """
 You are the ROOT Travel Concierge Agent - Lotara.
 

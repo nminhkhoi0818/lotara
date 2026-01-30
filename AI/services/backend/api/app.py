@@ -25,7 +25,8 @@ async def lifespan(app: FastAPI):
     print(f"[STARTUP] Lotara Travel Agent API")
     print(f"[STARTUP] Environment: {settings.environment}")
     print(f"[STARTUP] Model: {settings.model}")
-    print(f"[STARTUP] Opik Project: {settings.opik_project}")
+    print(f"[STARTUP] Opik Project: {settings.opik_project_name}")
+    print(f"[STARTUP] Opik Workspace: {settings.opik_workspace_name}")
     
     yield
     

@@ -3,6 +3,7 @@ from abc import abstractmethod
 from typing import Dict, Any
 from ..base_tool import BaseTool
 from google.adk.tools import ToolContext, FunctionTool
+from src.travel_lotara.tracking import trace_tool
 
 
 class UserProfileTool(BaseTool):
@@ -29,6 +30,7 @@ class UserProfileTool(BaseTool):
         tool_context.state["normalized_user_profile"] = profile
         return profile
 
+@trace_tool(name="user_profile_lookup", tags=["context", "user", "profile"])
 def get_user_profile(tool_context: ToolContext):
     """Get and normalize user profile data."""
     return UserProfileTool().run(tool_context)
@@ -36,4 +38,3 @@ def get_user_profile(tool_context: ToolContext):
 user_profile_tool = FunctionTool(
     func=get_user_profile,
 )
-

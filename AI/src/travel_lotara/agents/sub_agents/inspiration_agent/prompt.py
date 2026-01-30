@@ -21,6 +21,18 @@ Generate vibes, themes, emotional direction based on personality.
 
 """
 
+# Inspiration Agent Prompt Metadata
+INSPIRATION_AGENT_METADATA = {
+    "agent_name": "inspiration_agent",
+    "version": "1.0.0",
+    "role": "inspiration_generator",
+    "description": "Generates travel inspiration, themes, and high-level concepts based on user preferences",
+    "last_updated": "2026-01-30",
+    "variables": ["user_context", "destination", "total_days", "user_profile"],
+    "category": "creative",
+    "tags": ["inspiration", "themes", "personalization"]
+}
+
 INSPIRATION_AGENT_INSTR = """
 You are the INSPIRATION TRAVEL AGENT - responsible for generating travel inspiration.
 

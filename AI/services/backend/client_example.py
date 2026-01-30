@@ -104,7 +104,6 @@ if __name__ == "__main__":
         itinerary = result.get("itinerary", {})
         print(f"\n📋 Itinerary Summary:")
         print(f"   Trip: {itinerary.get('trip_name', 'N/A')}")
-        print(f"   Dates: {itinerary.get('start_date')} to {itinerary.get('end_date')}")
         print(f"   Duration: {itinerary.get('total_days')} days")
         print(f"   Session: {result['session_id']}")
         

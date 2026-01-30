@@ -31,16 +31,12 @@ class TripOverviewItinerary(BaseModel):
     """Trip overview model."""
     trip_number: int
     summary: str
-    start_date: str
-    end_date: str
     events: List[GenericEvent]
 
 
 class Itinerary(BaseModel):
     """Itinerary model for validation."""
     trip_name: str
-    start_date: str
-    end_date: str
     origin: str
     destination: str
     total_days: str
@@ -93,7 +89,6 @@ def validate_itinerary_structure(data: Any) -> ItineraryValidationResult:
         itinerary_dict = validated_itinerary.model_dump()
         
         # Additional custom validations
-        _validate_dates(itinerary_dict, errors, warnings)
         _validate_events(itinerary_dict, errors, warnings)
         _validate_completeness(itinerary_dict, errors, warnings)
         
@@ -122,25 +117,6 @@ def validate_itinerary_structure(data: Any) -> ItineraryValidationResult:
             errors=[f"Validation error: {str(e)}"]
         )
 
-
-def _validate_dates(itinerary: Dict[str, Any], errors: list[str], warnings: list[str]) -> None:
-    """Validate date fields in itinerary."""
-    start_date = itinerary.get("start_date")
-    end_date = itinerary.get("end_date")
-    total_days = itinerary.get("total_days")
-    
-    if not start_date:
-        errors.append("Missing start_date")
-    if not end_date:
-        errors.append("Missing end_date")
-    
-    # Check date format (YYYY-MM-DD)
-    import re
-    date_pattern = r"^\d{4}-\d{2}-\d{2}$"
-    if start_date and not re.match(date_pattern, start_date):
-        warnings.append(f"start_date format may be invalid: {start_date}")
-    if end_date and not re.match(date_pattern, end_date):
-        warnings.append(f"end_date format may be invalid: {end_date}")
 
 
 def _validate_events(itinerary: Dict[str, Any], errors: list[str], warnings: list[str]) -> None:
@@ -177,8 +153,7 @@ def _validate_events(itinerary: Dict[str, Any], errors: list[str], warnings: lis
 def _validate_completeness(itinerary: Dict[str, Any], errors: list[str], warnings: list[str]) -> None:
     """Validate completeness of itinerary data."""
     required_fields = [
-        "trip_name", "start_date", "end_date", 
-        "origin", "destination", "total_days", 
+        "trip_name", "origin", "destination", "total_days", 
         "average_budget_spend_per_day", "average_ratings", "trip_overview"
     ]
     
@@ -211,11 +186,10 @@ def normalize_itinerary_output(raw_data: Any) -> Dict[str, Any]:
             # Return minimal structure if can't parse
             return {
                 "trip_name": "Untitled Trip",
-                "start_date": "2025-01-01",
-                "end_date": "2025-01-01",
                 "origin": "Unknown",
                 "destination": "Unknown",
                 "total_days": "0",
+                "average_budget_spend_per_day": "$50 USD",
                 "average_ratings": "0.0",
                 "trip_overview": [],
                 "raw_response": raw_data
@@ -224,11 +198,10 @@ def normalize_itinerary_output(raw_data: Any) -> Dict[str, Any]:
     if not isinstance(raw_data, dict):
         return {
             "trip_name": "Error",
-            "start_date": "2025-01-01",
-            "end_date": "2025-01-01",
             "origin": "Unknown",
             "destination": "Unknown",
             "total_days": "0",
+            "average_budget_spend_per_day": "$50 USD",
             "average_ratings": "0.0",
             "trip_overview": [],
             "error": f"Invalid data type: {type(raw_data)}"
@@ -241,8 +214,6 @@ def normalize_itinerary_output(raw_data: Any) -> Dict[str, Any]:
     # Ensure all required fields exist
     normalized = {
         "trip_name": raw_data.get("trip_name", raw_data.get("location_name", "Untitled Trip")),
-        "start_date": raw_data.get("start_date", "2025-01-01"),
-        "end_date": raw_data.get("end_date", "2025-01-01"),
         "origin": raw_data.get("origin", "Unknown"),
         "destination": raw_data.get("destination", raw_data.get("location_name", "Unknown")),
         "total_days": str(raw_data.get("total_days", 0)),

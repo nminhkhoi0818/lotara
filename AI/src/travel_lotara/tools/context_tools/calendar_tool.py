@@ -4,6 +4,7 @@ from abc import abstractmethod
 from datetime import datetime, timedelta
 from google.adk.tools import ToolContext, FunctionTool
 from ..base_tool import BaseTool
+from src.travel_lotara.tracking import trace_tool
 
 class CalendarTool(BaseTool):
     """Expands trip dates into structured calendar days."""
@@ -18,7 +19,9 @@ class CalendarTool(BaseTool):
         
         if not start_date_str or not end_date_str:
             return {
-                "error": "start_date or end_date not found in state",
+                "error": "Dates not set yet",
+                "instruction": "Please use memorize() to set start_date and end_date first",
+                "example": "memorize('start_date', '2026-03-15')",
                 "total_days": 0,
                 "calendar": []
             }
@@ -45,6 +48,7 @@ class CalendarTool(BaseTool):
         return {"total_days": len(days), "calendar": days}
 
 
+@trace_tool(name="trip_calendar", tags=["context", "calendar", "dates"])
 def get_trip_calendar(tool_context: ToolContext):
     """Generate trip calendar from start and end dates."""
     return CalendarTool().run(tool_context)

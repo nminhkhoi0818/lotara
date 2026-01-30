@@ -18,8 +18,10 @@ class Settings(BaseModel):
     
     # Opik Configuration
     opik_api_key: str | None = Field(default=None)
-    opik_project: str = Field(default="lotara-travel")
+    opik_project_name: str = Field(default="lotara-travel")
+    opik_workspace_name: str = Field(default="lotara-workspace")
     opik_tags: list[str] = Field(default_factory=lambda: ["travel", "multi-agent", "adk"])
+    project_environment: str = Field(default="development")
     
     # Google AI Configuration
     google_api_key: str | None = Field(default=None)
@@ -54,7 +56,9 @@ def load_settings() -> Settings:
     return Settings(
         # Opik
         opik_api_key=os.getenv("OPIK_API_KEY"),
-        opik_project=os.getenv("OPIK_PROJECT_NAME", "lotara-travel"),
+        opik_project_name=os.getenv("OPIK_PROJECT_NAME", "lotara-travel"),
+        opik_workspace_name=os.getenv("OPIK_WORKSPACE_NAME", "lotara-workspace"),
+        project_environment=os.getenv("ENV", os.getenv("ENVIRONMENT", "development")),
         
         # Google AI
         google_api_key=os.getenv("GOOGLE_API_KEY"),

@@ -274,16 +274,16 @@ async def generate_itinerary_stream(request: ItineraryRequest):
                         backend_json=request_dict,
                     ))
                     
-                    # Send progress updates while waiting
+                    # Send progress updates while waiting (3-agent flow)
                     progress_messages = [
-                        (5, "Analyzing your preferences..."),
-                        (10, "Inspiration agent starting..."),
-                        (30, "Discovering destinations..."),
-                        (50, "Planning agent starting..."),
-                        (70, "Creating day-by-day itinerary..."),
-                        (90, "Finalizing details...")
-                    ]
-                    
+                        (5, "Pre-agent optimizing your request..."),
+                        (15, "Analyzing your preferences..."),
+                        (25, "Inspiration agent starting..."),
+                        (40, "Discovering destinations and themes..."),
+                        (55, "Planning agent starting..."),
+                        (75, "Creating detailed day-by-day itinerary..."),
+                        (90, "Finalizing itinerary structure...")
+                    ]               
                     progress_idx = 0
                     while not agent_task.done():
                         if progress_idx < len(progress_messages):
@@ -316,7 +316,7 @@ async def generate_itinerary_stream(request: ItineraryRequest):
                     # First, try to get itinerary from session state
                     itinerary_data = None
                     if session and hasattr(session, 'state'):
-                        state_itinerary = session.state.get("refactored_itinerary")
+                        state_itinerary = session.state.get("itinerary")
                         if state_itinerary and isinstance(state_itinerary, dict):
                             itinerary_data = state_itinerary
                     
@@ -345,16 +345,6 @@ async def generate_itinerary_stream(request: ItineraryRequest):
                             "session_id": session.id if session else "unknown",
                             "user_id": request.userId,
                             "itinerary": itinerary_obj,
-                            # Extract top-level metadata from itinerary
-                            "origin": itinerary_obj.get("origin"),
-                            "destination": itinerary_obj.get("destination"),
-                            "start_date": itinerary_obj.get("start_date"),
-                            "end_date": itinerary_obj.get("end_date"),
-                            "itinerary_start_date": itinerary_obj.get("start_date"),
-                            "itinerary_end_date": itinerary_obj.get("end_date"),
-                            "total_days": int(itinerary_obj.get("total_days", 0)) if itinerary_obj.get("total_days") else None,
-                            "average_budget_spend_per_day": itinerary_obj.get("average_budget_spend_per_day"),
-                            "average_ratings": itinerary_obj.get("average_ratings"),
                             "error": None
                         }
                         

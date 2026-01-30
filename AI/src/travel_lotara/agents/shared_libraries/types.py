@@ -330,8 +330,6 @@ class GenericEvent(BaseModel):
 class TripOverviewItinerary(BaseModel):
     trip_number: int = Field(description="Sequential trip number")
     summary: str = Field(description="Brief summary of the trip")
-    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
-    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
     events: List[GenericEvent] = Field(
         description="List of events for the trip day."
     )
@@ -340,8 +338,6 @@ class Itinerary(BaseModel):
     trip_name: str = Field(description="Name of the trip")
     origin: str = Field(description="Trip origin location")
     destination: str = Field(description="Trip destination location")
-    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
-    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
     average_budget_spend_per_day: str = Field(description="Average daily budget (e.g., '$50 USD')")
     total_days: str = Field(description="Total number of days for the trip")
     average_ratings: str = Field(description="Average ratings of the trip")

@@ -20,8 +20,6 @@ from google.adk.tools import FunctionTool
 from google.adk.tools.agent_tool import AgentTool
 
 from src.travel_lotara.tools import (
-    calendar_tool, 
-    date_season_tool,
     memorize
 )
 
@@ -35,6 +33,7 @@ from src.travel_lotara.agents.shared_libraries import (
 )
 from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
 from google.adk.tools import google_search
+from src.travel_lotara.agents.tracing_config import setup_agent_tracing
 
 # GLOBAL SETTINGS
 settings = get_settings()
@@ -56,8 +55,8 @@ google_search_config = AgentConfig(
     name=GOOGLE_SEARCH_NAME,
     description=GOOGLE_SEARCH_DESCRIPTION,
     instruction=GOOGLE_SEARCH_INSTR,
-    disallow_transfer_to_parent=GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PARENT,
-    disallow_transfer_to_peers=GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PEERS,
+    # disallow_transfer_to_parent=GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PARENT,
+    # disallow_transfer_to_peers=GOOGLE_SEARCH_DISALLOW_TRANSFER_TO_PEERS,
     output_key=GOOGLE_SEARCH_OUTPUT_KEY,
     tools=[google_search],
     # output_schema=ItineraryStructurePlan,
@@ -66,6 +65,31 @@ google_search_config = AgentConfig(
 google_search_agent = BaseAgent(
     config=google_search_config
 ).create_agent()
+
+# Tracing
+setup_agent_tracing(google_search_agent, environment=settings.project_environment)
+
+## Planning Agent
+planning_agent_config = AgentConfig(
+    model=MODEL_ID,
+    name="planning_agent",
+    description="Create and manage travel itineraries based on user preferences and constraints.",
+    instruction=PLANNING_AGENT_INSTR,
+    output_schema=Itinerary,  # Removed to allow sequential flow - refactoring agent handles final output
+    tools=[
+        AgentTool(agent=google_search_agent),
+        FunctionTool(func=memorize),  # memorize is a function, must wrap in FunctionTool
+    ],
+    output_key="itinerary",
+)
+
+planning_agent = BaseAgent(
+    config=planning_agent_config
+).create_agent()
+
+# Tracing
+setup_agent_tracing(planning_agent, environment=settings.project_environment)
+
 
 
 # Refactored AgentTools for modular agents (not used directly here)
@@ -91,30 +115,5 @@ refactoring_output_agent = BaseAgent(
     config=refactoring_output_config
 ).create_agent()
 
-## Planning Agent
-planning_agent_config = AgentConfig(
-    model=MODEL_ID,
-    name="planning_agent",
-    description="Create and manage travel itineraries based on user preferences and constraints.",
-    instruction=PLANNING_AGENT_INSTR,
-    # output_schema=Itinerary,  # Removed to allow sequential flow - refactoring agent handles final output
-    tools=[
-        # AgentTool(agent=transport_planner_agent), 
-        # AgentTool(agent=accomodation_planner_agent),
-        # AgentTool(agent=itinerary_structuring_agent),
-        # google_search,  # Already a GoogleSearchTool, don't wrap in FunctionTool
-        # AgentTool(agent=google_search_agent),
-        # AgentTool(agent=refactoring_output_agent),
-        calendar_tool,
-        date_season_tool,
-        FunctionTool(func=memorize),  # memorize is a function, must wrap in FunctionTool
-    ],
-    output_key="itinerary",
-)
-
-planning_agent = BaseAgent(
-    config=planning_agent_config
-).create_agent()
-
-
-
+# Tracing
+setup_agent_tracing(refactoring_output_agent, environment=settings.project_environment)

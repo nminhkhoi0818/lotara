@@ -103,10 +103,8 @@ def parse_backend_input(backend_data: Dict[str, Any]) -> Dict[str, Any]:
     timing_key = backend_data.get("timing", "flexible")
     remote = backend_data.get("remote", False)
     
-    # Calculate dates (default to 2 weeks from now)
-    start_date = datetime.now() + timedelta(days=14)
+    # Get duration in days (dates will be determined by agents)
     duration_days = DURATION_MAP.get(duration_key, DURATION_MAP["medium"])["days"]
-    end_date = start_date + timedelta(days=duration_days)
     
     # Map to agent state format
     travel_style_info = TRAVEL_STYLE_MAP.get(style_key, TRAVEL_STYLE_MAP["cultural"])
@@ -137,27 +135,21 @@ def parse_backend_input(backend_data: Dict[str, Any]) -> Dict[str, Any]:
             },
             "home_location": {
                 "event_type": "home",
-                "city": "Ho Chi Minh City",  # Default, can be overridden
-                "country": "Vietnam",
-                "timezone": "Asia/Ho_Chi_Minh"
+                "city": "",  # Default, can be overridden
+                "country": "",
+                "timezone": ""
             }
         },
         "itinerary": {
             "trip_name": "",
-            "start_date": start_date.strftime("%Y-%m-%d"),
-            "end_date": end_date.strftime("%Y-%m-%d"),
-            "origin": "Ho Chi Minh City, Vietnam",
-            "destination": "Vietnam",  # Will be refined by inspiration agent
+            "origin": "",
+            "destination": "",  # Will be refined by inspiration agent
             "total_days": str(duration_days),
             "average_ratings": "",
             "trip_overview": []
         },
-        "origin": "Ho Chi Minh City, Vietnam",
-        "destination": "Vietnam",
-        "start_date": start_date.strftime("%Y-%m-%d"),
-        "end_date": end_date.strftime("%Y-%m-%d"),
-        "itinerary_start_date": start_date.strftime("%Y-%m-%d"),
-        "itinerary_end_date": end_date.strftime("%Y-%m-%d"),
+        "origin": "",
+        "destination": "",
         "total_days": duration_days,
         "average_budget_spend_per_day": budget_info["daily"],
         "average_ratings": ""
@@ -183,14 +175,12 @@ def create_natural_language_query(backend_data: Dict[str, Any]) -> str:
     budget_label = BUDGET_MAP.get(budget_key, BUDGET_MAP["midrange"])["daily"]
     style_label = TRAVEL_STYLE_MAP.get(style_key, TRAVEL_STYLE_MAP["cultural"])["primary"]
     
-    # Calculate dates
-    start_date = datetime.now() + timedelta(days=14)
+    # Get duration in days
     duration_days = DURATION_MAP.get(duration_key, DURATION_MAP["medium"])["days"]
-    end_date = start_date + timedelta(days=duration_days)
     
     query = (
-        f"I need a detailed day-by-day travel plan for Vietnam. "
-        f"Duration: {duration_label} ({duration_days} days) from {start_date.strftime('%B %d, %Y')} to {end_date.strftime('%B %d, %Y')}. "
+        f"I need a detailed day-by-day travel plan for [destination] from my [origin] country. "
+        f"Duration: {duration_label} ({duration_days} days). "
         f"Traveler: {companion_label}, Style: {style_label}, Budget: {budget_label}/day, Pace: {pace_key}. "
         f"Please create a complete detailed itinerary with transport, accommodation, and daily activities."
     )

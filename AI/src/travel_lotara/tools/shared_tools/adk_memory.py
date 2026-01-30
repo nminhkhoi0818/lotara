@@ -22,6 +22,7 @@ from typing import Any, Dict
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.sessions.state import State
 from google.adk.tools import ToolContext
+from src.travel_lotara.tracking import trace_tool
 from src.travel_lotara.agents.shared_libraries import (
     SYSTEM_TIME,
     ITIN_INITIALIZED,
@@ -39,6 +40,7 @@ SAMPLE_SCENARIO_PATH = os.getenv(
 )
 
 
+@trace_tool(name="memorize_list", tags=["memory", "state", "list"])
 def memorize_list(key: str, value: str, tool_context: ToolContext):
     """
     Memorize pieces of information.
@@ -59,6 +61,7 @@ def memorize_list(key: str, value: str, tool_context: ToolContext):
     return {"status": f'Stored "{key}": "{value}"'}
 
 
+@trace_tool(name="memorize", tags=["memory", "state", "key-value"])
 def memorize(key: str, value: str, tool_context: ToolContext):
     """
     Memorize pieces of information, one key-value pair at a time.
