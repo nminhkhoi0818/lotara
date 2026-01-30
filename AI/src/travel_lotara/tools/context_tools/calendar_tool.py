@@ -13,8 +13,18 @@ class CalendarTool(BaseTool):
     def run(self, tool_context: ToolContext):
         state = tool_context.state
 
-        start = datetime.fromisoformat(state["start_date"])
-        end = datetime.fromisoformat(state["end_date"])
+        start_date_str = state.get("start_date")
+        end_date_str = state.get("end_date")
+        
+        if not start_date_str or not end_date_str:
+            return {
+                "error": "start_date or end_date not found in state",
+                "total_days": 0,
+                "calendar": []
+            }
+        
+        start = datetime.fromisoformat(start_date_str)
+        end = datetime.fromisoformat(end_date_str)
 
         days = []
         current = start

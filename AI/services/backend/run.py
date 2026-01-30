@@ -18,7 +18,7 @@ except ImportError:
     print("[INIT] python-dotenv not installed, using system environment")
 
 
-def main():
+def main_run_app():
     """Run the FastAPI application with uvicorn."""
     import uvicorn
     
@@ -35,18 +35,31 @@ def main():
     print(f"[INIT] Environment: {os.getenv('ENVIRONMENT', 'development')}")
     print(f"[INIT] Model: {os.getenv('LOTARA_MODEL', 'gemini-2.5-flash')}")
     
+    # Configure reload directories to avoid scanning non-existent paths
+    reload_dirs = None
+    if reload:
+        project_root = backend_dir.parent.parent
+        reload_dirs = [
+            str(project_root / "services" / "backend"),
+            str(project_root / "src"),
+        ]
+        # Only add existing directories
+        reload_dirs = [d for d in reload_dirs if Path(d).exists()]
+        print(f"[INIT] Watching directories: {reload_dirs}")
+    
     uvicorn.run(
-        "api.app:app",
+        "services.backend.api.app:app",
         host=host,
         port=port,
         workers=workers if not reload else 1,  # Single worker for reload mode
         reload=reload,
+        reload_dirs=reload_dirs,
         log_level="info"
     )
 
 
 if __name__ == "__main__":
-    main()
+    main_run_app()
 
     # To run the app, use the command:
     # uv run services/backend/run.py

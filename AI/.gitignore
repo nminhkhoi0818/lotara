@@ -180,3 +180,4 @@ docs/*
 src/travel_lotara/test_agents.py
 src/quick_test.py
 deployment/*
+.vercel

@@ -318,6 +318,7 @@ See [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) for full hackathon strateg
 - Safety guardrails
 - Personality framework
 - Comprehensive documentation
+- **⚡ FastAPI Backend** optimized for Vercel deployment
 
 ### 🔄 In Progress
 - Mock API implementations
@@ -328,18 +329,88 @@ See [EXECUTIVE_SUMMARY.md](docs/EXECUTIVE_SUMMARY.md) for full hackathon strateg
 ### 📋 Planned
 - Real API integrations
 - RAG knowledge base population
-- Frontend UI
-- Production deployment
+- Frontend UI integration
+
+---
+
+## 🚀 FastAPI Backend & Vercel Deployment
+
+**NEW**: Production-ready REST API with Server-Sent Events streaming!
+
+### Quick Deploy to Vercel (Super Simple!)
+
+```bash
+# 1. Install Vercel CLI
+npm install -g vercel
+
+# 2. Deploy
+cd AI
+vercel --prod
+
+# 3. Add environment variables in Vercel Dashboard
+# That's it - no KV, no Redis, no cron jobs needed!
+```
+
+### Key Features
+
+✅ **Real-Time Streaming** - Server-Sent Events (SSE) for live progress updates  
+✅ **No External Dependencies** - Just FastAPI + Google ADK (no KV/Redis needed!)  
+✅ **In-Memory Caching** - Last 100 requests cached automatically  
+✅ **Opik Tracing** - Full observability preserved  
+✅ **Simple Deployment** - One command, no complex setup
+
+### API Endpoints
+
+**POST /api/itinerary/generate-stream** - SSE streaming with real-time progress (recommended)
+```bash
+curl -N -X POST https://your-app.vercel.app/api/itinerary/generate-stream \
+  -H "Content-Type: application/json" \
+  -d '{"destination": "Paris", "duration": "3 days", "userId": "user123"}'
+
+# Returns streaming events:
+# event: progress | data: {"progress": 0, "message": "Starting..."}
+# event: progress | data: {"progress": 30, "message": "Analyzing..."}
+# event: done | data: {full_itinerary}
+```
+
+**POST /api/itinerary/generate** - Standard endpoint (waits for completion)
+```bash
+curl -X POST https://your-app.vercel.app/api/itinerary/generate \
+  -H "Content-Type: application/json" \
+  -d '{"destination": "Paris", "duration": "3 days", "userId": "user123"}'
+```
+
+### Documentation
+
+- **Simplified Guide**: [VERCEL_SIMPLIFIED.md](VERCEL_SIMPLIFIED.md) ⭐ **Start here!**
+- **Full Deployment Guide**: [VERCEL_DEPLOYMENT.md](VERCEL_DEPLOYMENT.md)
+- **Implementation Details**: [VERCEL_IMPLEMENTATION_SUMMARY.md](VERCEL_IMPLEMENTATION_SUMMARY.md)
+- **Local Testing**: Run `python quick_start_local.py`
+
+### Architecture
+
+```
+Client → SSE Connection → FastAPI → Google ADK Agents
+                              ↓
+                    Real-time progress events
+                              ↓
+                    Final itinerary result
+```
+
+**No Redis. No job queues. No polling. Just streaming!**
 
 ---
 
 ## 💻 Technology Stack
 
 - **Python 3.10+** with asyncio
+- **FastAPI** for REST API
+- **Vercel** for serverless deployment
+- **Vercel KV (Redis)** for job queue & caching
 - **Google ADK** for agent framework
 - **Opik** for observability & evaluation
 - **Pydantic v2** for schema validation
-- **OpenAI/Anthropic/Gemini** for LLMs
+- **Gemini 2.5 Flash** for LLM inference
 
 ---
 

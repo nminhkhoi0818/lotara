@@ -27,7 +27,8 @@ from .prompt import *
 from src.travel_lotara.agents.sub_agents import (
     inspiration_agent,
     planning_agent,
-    pretrip_agent,
+    # pretrip_agent,
+    refactoring_output_agent
 )
 from ..tools.context_tools import user_profile_tool 
 from src.travel_lotara.config.settings import get_settings
@@ -58,12 +59,13 @@ retry_config = types.GenerateContentConfig(
 
 with using_session(session_id=uuid.uuid4()):
     # SequentialAgent requires name and sub_agents
+    # All agents must run sequentially - only the final agent (refactoring_output_agent) has output_schema
     root_agent = SequentialAgent(
         name=ROOT_AGENT_NAME,
         sub_agents=[
             inspiration_agent,
             planning_agent,
-            # pretrip_agent,
+            refactoring_output_agent
         ],
         after_agent_callback=after_agent_callback,
     )

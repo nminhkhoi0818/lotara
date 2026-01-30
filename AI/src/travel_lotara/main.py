@@ -105,7 +105,7 @@ async def run_agent(
 
     # Application-level retry wrapper (reduced since ADK has its own retry logic)
     # ADK now handles retries at the model level with 60s delay and 5 attempts
-    max_retries = 2  # Reduced from 7 - ADK does the heavy lifting now
+    max_retries = 1  # Reduced from 7 - ADK does the heavy lifting now
     base_delay = 30  # seconds - shorter since ADK already tried
     
     for attempt in range(max_retries):
@@ -134,6 +134,17 @@ async def run_agent(
                             if hasattr(part, "text") and part.text:
                                 final_text_parts.append(part.text)
             
+            # Combine all text parts into final response
+            expected_output = final_text_parts[-1] if len(final_text_parts) > 0 else ""
+
+            # Enforce final JSON output schema
+            # Delete special token if present (```json ... ```,  <<JSON_OUTPUT>> etc)
+            if expected_output.startswith("<<JSON_OUTPUT>>"):
+                expected_output = expected_output.replace("<<JSON_OUTPUT>>", "").strip()
+            if expected_output.startswith("```json"):
+                expected_output = expected_output.replace("```json", "").replace("```", "").strip()
+
+            # Print final output
             print("[INFO] Agent execution completed successfully")
             break  # Success - exit retry loop
             
@@ -203,7 +214,7 @@ async def run_agent(
                 print(f"[ERROR] Non-retryable error: {e}")
                 raise  # Re-raise non-retryable errors
 
-    response_text = "\n".join(final_text_parts).strip() or "No response generated."
+    response_text = expected_output if expected_output else "No response generated."
     return response_text, session
 
 

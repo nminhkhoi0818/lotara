@@ -10,7 +10,18 @@ class DateSeasonTool(BaseTool):
     def run(self, tool_context: ToolContext):
         state = tool_context.state
 
-        start_date = datetime.fromisoformat(state["start_date"])
+        start_date_str = state.get("start_date")
+        if not start_date_str:
+            return {
+                "error": "start_date not found in state",
+                "season": "unknown",
+                "month": None,
+                "is_peak_season": False,
+                "monsoon_risk": False,
+                "heat_risk": False,
+            }
+        
+        start_date = datetime.fromisoformat(start_date_str)
         month = start_date.month
 
         # Vietnam-specific seasons

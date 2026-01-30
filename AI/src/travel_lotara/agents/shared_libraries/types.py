@@ -307,6 +307,9 @@ class ActivityEvents(BaseModel):
     keywords: Optional[List[str]] = Field(description="Keywords related to the visit event")
     average_timespan: str = Field(description="Average timespan of the visit event")
     image_url: Optional[str] = Field(description="Image URL for the visit event")
+class LocationActivity(BaseModel):
+    name: str = Field(description="Name of the location")
+    address: str = Field(description="Address of the location")
 
 
 # Generic Event model that can represent any event type
@@ -317,11 +320,10 @@ class GenericEvent(BaseModel):
     end_time: Optional[str] = Field(None, description="End time of the event")
     departure_time: Optional[str] = Field(None, description="Departure time (for flights)")
     arrival_time: Optional[str] = Field(None, description="Arrival time (for flights)")
-    location_name: Optional[str] = Field(None, description="Name of the location")
-    location_address: Optional[str] = Field(None, description="Address of the location")
-    budget: str = Field(description="Budget for the event")
+    location: Optional[LocationActivity] = Field(None, description="Location details")
+    budget: Optional[str] = Field(None, description="Budget for the event")
     keywords: Optional[List[str]] = Field(None, description="Keywords related to the event")
-    average_timespan: str = Field(description="Average duration of the event")
+    average_timespan: Optional[str] = Field(None, description="Average duration of the event")
     image_url: Optional[str] = Field(None, description="Image URL for the event")
 
 
@@ -336,10 +338,11 @@ class TripOverviewItinerary(BaseModel):
 
 class Itinerary(BaseModel):
     trip_name: str = Field(description="Name of the trip")
-    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
-    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
     origin: str = Field(description="Trip origin location")
     destination: str = Field(description="Trip destination location")
+    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
+    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
+    average_budget_spend_per_day: str = Field(description="Average daily budget (e.g., '$50 USD')")
     total_days: str = Field(description="Total number of days for the trip")
     average_ratings: str = Field(description="Average ratings of the trip")
     trip_overview: List[TripOverviewItinerary] = Field(

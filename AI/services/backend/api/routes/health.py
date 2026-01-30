@@ -3,7 +3,7 @@
 import sys
 import os
 from fastapi import APIRouter
-from api.models import HealthResponse
+from services.backend.api.models import HealthResponse
 
 # Add parent directory to path to import from src
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../..')))

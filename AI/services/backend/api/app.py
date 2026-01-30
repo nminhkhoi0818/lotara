@@ -10,14 +10,16 @@ from fastapi.responses import JSONResponse
 # Add parent directory to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../..')))
 
-from src.travel_lotara.config.settings import get_settings
-from src.travel_lotara.tracking import flush_traces
-from api.routes import itinerary_router, health_router
+# Import routes (lightweight, no heavy dependencies)
+from services.backend.api.routes import itinerary_router, health_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifecycle manager for the application."""
+    # Lazy import settings to reduce cold start
+    from src.travel_lotara.config.settings import get_settings
+    
     # Startup
     settings = get_settings()
     print(f"[STARTUP] Lotara Travel Agent API")
@@ -27,7 +29,8 @@ async def lifespan(app: FastAPI):
     
     yield
     
-    # Shutdown
+    # Shutdown - lazy import for flush
+    from src.travel_lotara.tracking import flush_traces
     print("[SHUTDOWN] Flushing Opik traces...")
     flush_traces()
     print("[SHUTDOWN] Lotara Travel Agent API stopped")
@@ -41,8 +44,7 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Load settings for CORS
-settings = get_settings()
+# Load CORS settings
 cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(",")
 
 # Add CORS middleware
@@ -59,6 +61,10 @@ app.add_middleware(
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
     """Handle uncaught exceptions."""
+    # Lazy import settings
+    from src.travel_lotara.config.settings import get_settings
+    settings = get_settings()
+    
     return JSONResponse(
         status_code=500,
         content={
