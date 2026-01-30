@@ -2,6 +2,10 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../../users/services/users.service';
 import { PlacesService } from '../../places/services/places.service';
 import { MatchScoringService, MatchScore } from './match-scoring.service';
+import {
+  AIIntegrationService,
+  AIItineraryResponse,
+} from './ai-integration.service';
 
 export interface RecommendationResult {
   userId: string;
@@ -36,6 +40,7 @@ export class RecommendationsService {
     private usersService: UsersService,
     private placesService: PlacesService,
     private matchScoringService: MatchScoringService,
+    private aiIntegrationService: AIIntegrationService,
   ) {}
 
   /**
@@ -46,12 +51,12 @@ export class RecommendationsService {
    * @returns Ranked recommendations
    * @throws NotFoundException if user not found
    */
-  getRecommendationsForUser(
+  async getRecommendationsForUser(
     userId: string,
     limit: number = 10,
-  ): RecommendationResult {
+  ): Promise<RecommendationResult> {
     // Step 1: Retrieve user
-    const user = this.usersService.getUserById(userId);
+    const user = await this.usersService.getUserById(userId);
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
@@ -97,8 +102,8 @@ export class RecommendationsService {
    * @param userId User ID
    * @returns All places with scores
    */
-  getAllPlaceScores(userId: string): RecommendationResult {
-    const user = this.usersService.getUserById(userId);
+  async getAllPlaceScores(userId: string): Promise<RecommendationResult> {
+    const user = await this.usersService.getUserById(userId);
     if (!user) {
       throw new NotFoundException(`User ${userId} not found`);
     }
@@ -135,10 +140,55 @@ export class RecommendationsService {
    * @param limit Maximum number of recommendations
    * @returns Filtered recommendations
    */
-  getFilteredRecommendations(
+  async getFilteredRecommendations(
     userId: string,
     limit?: number,
-  ): RecommendationResult {
-    return this.getRecommendationsForUser(userId, limit);
+  ): Promise<RecommendationResult> {
+    return await this.getRecommendationsForUser(userId, limit);
+  }
+
+  /**
+   * Generate AI-powered itinerary for a user.
+   *
+   * This method:
+   * 1. Fetches the user's persona data
+   * 2. Calls the AI service with the user's preferences
+   * 3. Returns the generated itinerary
+   *
+   * @param userId User ID
+   * @returns AI-generated itinerary
+   * @throws NotFoundException if user not found
+   */
+  async generateAIItinerary(userId: string): Promise<AIItineraryResponse> {
+    // Fetch user data
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new NotFoundException(`User ${userId} not found`);
+    }
+
+    // Check if user has persona answers
+    if (!user.persona_answers) {
+      throw new NotFoundException(
+        `User ${userId} does not have persona answers. Please complete onboarding first.`,
+      );
+    }
+
+    // Prepare request for AI service
+    const aiRequest = {
+      userId: user.id,
+      duration: user.persona_answers.duration,
+      companions: user.persona_answers.companions,
+      budget: user.persona_answers.budget,
+      pace: user.persona_answers.pace,
+      travelStyle: user.persona_answers.travelStyle,
+      activity: user.persona_answers.activity,
+      crowds: user.persona_answers.crowds,
+      accommodation: user.persona_answers.accommodation,
+      remote: user.persona_answers.remote,
+      timing: user.persona_answers.timing,
+    };
+
+    // Call AI service
+    return await this.aiIntegrationService.generateItinerary(aiRequest);
   }
 }

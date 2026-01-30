@@ -300,11 +300,90 @@ Add endpoints:
 
 Track onboarding success rates, common preferences, etc.
 
+## AI Integration (Gemini)
+
+### Overview
+
+The onboarding submission endpoint now integrates with Google's Gemini AI to provide personalized welcome messages based on user preferences.
+
+### Features
+
+- **Personalized Messages**: AI-generated welcome messages tailored to travel style
+- **Streaming Support**: Real-time message generation via Server-Sent Events (SSE)
+- **Graceful Fallback**: Continues without AI if generation fails
+
+### Setup
+
+1. Install dependencies (already done):
+   ```bash
+   npm install @google/generative-ai
+   ```
+
+2. Get API key: https://makersuite.google.com/app/apikey
+
+3. Add to `.env`:
+   ```
+   GEMINI_API_KEY=your-gemini-api-key-here
+   ```
+
+### Usage
+
+**Non-streaming (default):**
+```bash
+POST /users/onboarding/submit
+Content-Type: application/json
+
+{
+  "duration": "medium",
+  "companions": "solo",
+  "budget": "midrange",
+  "pace": "balanced",
+  "travelStyle": "cultural",
+  "activity": "medium",
+  "crowds": "mixed",
+  "accommodation": "standard",
+  "remote": false,
+  "timing": "flexible"
+}
+
+# Response includes aiMessage field
+{
+  "userId": "...",
+  "duration": "medium",
+  ...
+  "aiMessage": "Welcome! Based on your love for cultural..."
+}
+```
+
+**Streaming mode:**
+```bash
+POST /users/onboarding/submit?stream=true
+
+# Returns Server-Sent Events stream:
+data: {"type":"user","data":{...}}
+data: {"type":"ai_chunk","data":"Welcome! "}
+data: {"type":"ai_chunk","data":"Based on..."}
+data: {"type":"complete"}
+```
+
+### Documentation
+
+- Full integration guide: [GEMINI_INTEGRATION.md](./GEMINI_INTEGRATION.md)
+- Frontend examples: [examples/frontend-integration.example.js](./examples/frontend-integration.example.js)
+
+### Services
+
+- **GeminiService** (`services/gemini.service.ts`):
+  - `generateWelcomeMessage()` - Non-streaming AI message
+  - `generateWelcomeMessageStream()` - Streaming AI message
+
 ## Summary
 
 The User Onboarding feature is:
 
 - ✅ **Complete**: All requirements from prompt implemented
+- ✅ **AI-Powered**: Personalized welcome messages via Gemini API
+- ✅ **Streaming Ready**: Real-time AI responses for better UX
 - ✅ **Tested**: 34 passing tests covering all scenarios
 - ✅ **Production-ready**: Validation, error handling, deterministic
 - ✅ **Extensible**: Ready for database integration and new features
