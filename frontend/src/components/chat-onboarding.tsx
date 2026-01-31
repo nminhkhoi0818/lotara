@@ -125,11 +125,16 @@ export function ChatOnboarding() {
     setSubmitError(null);
 
     try {
-      const response = await userService.submitOnboarding(formattedAnswers);
+      // const response = await userService.submitOnboarding(formattedAnswers);
       localStorage.setItem("personaAnswers", JSON.stringify(formattedAnswers));
-      if (response.userId) {
-        localStorage.setItem("userId", response.userId);
-      }
+      // if (response.userId) {
+      //   localStorage.setItem("userId", response.userId);
+
+      // }
+      localStorage.setItem(
+        "onboardingAnswer",
+        JSON.stringify(formattedAnswers),
+      );
       router.push("/persona");
     } catch (error) {
       console.error("Failed to submit onboarding:", error);
