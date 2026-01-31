@@ -10,6 +10,7 @@ import {
 import { CreateUserOnboardingDto } from '../dto/create-user-onboarding.dto';
 import { SubmitUserOnboardingDto } from '../dto/submit-user-onboarding.dto';
 import { VibeMappingService } from './vibe-mapping.service';
+import { GeminiService } from './gemini.service';
 
 /**
  * Service for managing user data and persistence.
@@ -22,6 +23,7 @@ export class UsersService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private vibeMappingService: VibeMappingService,
+    private geminiService: GeminiService,
   ) {}
 
   /**
@@ -127,6 +129,49 @@ export class UsersService {
 
     // Persist user to database
     return await this.userRepository.save(user);
+  }
+
+  /**
+   * Submits user onboarding answers and generates AI welcome message.
+   *
+   * @param submitUserOnboardingDto Persona answers from frontend
+   * @returns Object containing created user and AI-generated message
+   */
+  async submitUserOnboardingWithAI(
+    submitUserOnboardingDto: SubmitUserOnboardingDto,
+  ): Promise<{ user: User; aiMessage: string }> {
+    // Create user first
+    const user = await this.submitUserOnboarding(submitUserOnboardingDto);
+
+    // Generate AI welcome message
+    const aiMessage = await this.geminiService.generateWelcomeMessage(
+      user.persona_answers!,
+    );
+
+    return { user, aiMessage };
+  }
+
+  /**
+   * Submits user onboarding and returns streaming AI message.
+   *
+   * @param submitUserOnboardingDto Persona answers from frontend
+   * @returns Object containing user and async generator for AI message stream
+   */
+  async submitUserOnboardingWithAIStream(
+    submitUserOnboardingDto: SubmitUserOnboardingDto,
+  ): Promise<{
+    user: User;
+    aiMessageStream: AsyncGenerator<string, void, unknown>;
+  }> {
+    // Create user first
+    const user = await this.submitUserOnboarding(submitUserOnboardingDto);
+
+    // Get AI message stream
+    const aiMessageStream = this.geminiService.generateWelcomeMessageStream(
+      user.persona_answers!,
+    );
+
+    return { user, aiMessageStream };
   }
 
   /**

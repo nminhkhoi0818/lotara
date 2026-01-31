@@ -10,4 +10,5 @@ export class UserPersonaResponseDto {
   remote: boolean;
   timing: string;
   userId: string;
+  aiMessage?: string; // AI-generated personalized welcome message
 }

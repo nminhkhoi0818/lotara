@@ -80,7 +80,12 @@ Creates a new user from initial onboarding data (legacy endpoint).
 ### 2. Submit User Onboarding (Persona Questionnaire)
 **POST** `/users/onboarding/submit`
 
-Submits comprehensive user onboarding answers from the persona questionnaire.
+Submits comprehensive user onboarding answers from the persona questionnaire. Returns the user data along with a personalized AI-generated welcome message.
+
+#### Query Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| stream | string | No | Set to "true" to enable Server-Sent Events streaming for AI message |
 
 #### Request Body
 ```json
@@ -112,7 +117,7 @@ Submits comprehensive user onboarding answers from the persona questionnaire.
 | remote | boolean | Yes | true, false | Interest in remote locations |
 | timing | string | Yes | "morning", "flexible", "evening" | Preferred time of day |
 
-#### Success Response (200 OK)
+#### Success Response - Non-Streaming (200 OK)
 ```json
 {
   "userId": "550e8400-e29b-41d4-a716-446655440000",
@@ -125,13 +130,35 @@ Submits comprehensive user onboarding answers from the persona questionnaire.
   "crowds": "mixed",
   "accommodation": "standard",
   "remote": false,
-  "timing": "flexible"
+  "timing": "flexible",
+  "aiMessage": "Welcome! Based on your love for cultural experiences and balanced pace, I'm excited to help you discover destinations that blend authentic local culture with comfortable exploration. Your midrange budget opens up wonderful opportunities for immersive experiences!"
 }
 ```
 
+#### Success Response - Streaming (200 OK)
+When `stream=true`, the response uses Server-Sent Events (SSE) format:
+
+```
+Content-Type: text/event-stream
+
+data: {"type":"user","data":{"userId":"550e8400...","duration":"medium",...}}
+
+data: {"type":"ai_chunk","data":"Welcome! "}
+
+data: {"type":"ai_chunk","data":"Based on your love for cultural experiences..."}
+
+data: {"type":"complete"}
+```
+
+**Stream Event Types:**
+- `user`: Contains the complete user persona data
+- `ai_chunk`: Contains a chunk of the AI-generated message
+- `complete`: Indicates the stream has finished successfully
+- `error`: Indicates an error occurred (contains error message)
+
 #### Error Responses
 - **400 Bad Request**: Invalid input
-- **500 Internal Server Error**: Persistence failure
+- **500 Internal Server Error**: Persistence failure or AI generation error
 
 ---
 

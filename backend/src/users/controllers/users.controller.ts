@@ -7,7 +7,10 @@ import {
   BadRequestException,
   InternalServerErrorException,
   NotFoundException,
+  Res,
+  Query,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { UsersService } from '../services/users.service';
 import { CreateUserOnboardingDto } from '../dto/create-user-onboarding.dto';
 import { SubmitUserOnboardingDto } from '../dto/submit-user-onboarding.dto';
@@ -75,6 +78,10 @@ export class UsersController {
    * POST /users/onboarding/submit
    *
    * Submits user onboarding answers from the persona questionnaire.
+   * Returns persona data along with an AI-generated welcome message.
+   *
+   * Query parameters:
+   * - stream: Set to 'true' to enable Server-Sent Events streaming for AI message
    *
    * Request payload:
    * {
@@ -90,7 +97,7 @@ export class UsersController {
    *   "timing": "flexible"
    * }
    *
-   * Success response (200 OK):
+   * Success response (200 OK) - Non-streaming:
    * {
    *   "userId": "uuid-string",
    *   "duration": "medium",
@@ -102,39 +109,101 @@ export class UsersController {
    *   "crowds": "mixed",
    *   "accommodation": "standard",
    *   "remote": false,
-   *   "timing": "flexible"
+   *   "timing": "flexible",
+   *   "aiMessage": "Welcome! Based on your love for cultural experiences..."
    * }
+   *
+   * Success response (200 OK) - Streaming (SSE):
+   * Stream of events with chunks of data and AI message
    *
    * Error responses:
    * - 400 Bad Request: Invalid input
    * - 500 Internal Server Error: Persistence failure
    *
    * @param submitUserOnboardingDto Persona questionnaire answers
-   * @returns User persona data with userId
+   * @param stream Whether to enable streaming
+   * @param res Express response object
+   * @returns User persona data with AI message
    */
   @Post('onboarding/submit')
   async submitOnboarding(
     @Body() submitUserOnboardingDto: SubmitUserOnboardingDto,
-  ): Promise<UserPersonaResponseDto> {
+    @Query('stream') stream?: string,
+    @Res() res?: Response,
+  ): Promise<UserPersonaResponseDto | void> {
     try {
-      const user = await this.usersService.submitUserOnboarding(
-        submitUserOnboardingDto,
-      );
+      const enableStream = stream === 'true';
 
-      // Return the persona data along with userId
-      return {
-        userId: user.id,
-        duration: user.persona_answers!.duration,
-        companions: user.persona_answers!.companions,
-        budget: user.persona_answers!.budget,
-        pace: user.persona_answers!.pace,
-        travelStyle: user.persona_answers!.travelStyle,
-        activity: user.persona_answers!.activity,
-        crowds: user.persona_answers!.crowds,
-        accommodation: user.persona_answers!.accommodation,
-        remote: user.persona_answers!.remote,
-        timing: user.persona_answers!.timing,
-      };
+      if (enableStream && res) {
+        // Set up Server-Sent Events (SSE)
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        const { user, aiMessageStream } =
+          await this.usersService.submitUserOnboardingWithAIStream(
+            submitUserOnboardingDto,
+          );
+
+        // Send user data first
+        const userData: UserPersonaResponseDto = {
+          userId: user.id,
+          duration: user.persona_answers!.duration,
+          companions: user.persona_answers!.companions,
+          budget: user.persona_answers!.budget,
+          pace: user.persona_answers!.pace,
+          travelStyle: user.persona_answers!.travelStyle,
+          activity: user.persona_answers!.activity,
+          crowds: user.persona_answers!.crowds,
+          accommodation: user.persona_answers!.accommodation,
+          remote: user.persona_answers!.remote,
+          timing: user.persona_answers!.timing,
+        };
+
+        res.write(
+          `data: ${JSON.stringify({ type: 'user', data: userData })}\n\n`,
+        );
+
+        // Stream AI message chunks
+        try {
+          for await (const chunk of aiMessageStream) {
+            res.write(
+              `data: ${JSON.stringify({ type: 'ai_chunk', data: chunk })}\n\n`,
+            );
+          }
+
+          // Send completion event
+          res.write(`data: ${JSON.stringify({ type: 'complete' })}\n\n`);
+        } catch (error) {
+          res.write(
+            `data: ${JSON.stringify({ type: 'error', data: 'Failed to generate AI message' })}\n\n`,
+          );
+        }
+
+        res.end();
+      } else {
+        // Non-streaming response
+        const { user, aiMessage } =
+          await this.usersService.submitUserOnboardingWithAI(
+            submitUserOnboardingDto,
+          );
+
+        // Return the persona data along with userId and AI message
+        return {
+          userId: user.id,
+          duration: user.persona_answers!.duration,
+          companions: user.persona_answers!.companions,
+          budget: user.persona_answers!.budget,
+          pace: user.persona_answers!.pace,
+          travelStyle: user.persona_answers!.travelStyle,
+          activity: user.persona_answers!.activity,
+          crowds: user.persona_answers!.crowds,
+          accommodation: user.persona_answers!.accommodation,
+          remote: user.persona_answers!.remote,
+          timing: user.persona_answers!.timing,
+          aiMessage: aiMessage,
+        };
+      }
     } catch (error) {
       // Re-throw BadRequestException for validation errors
       if (error instanceof BadRequestException) {
