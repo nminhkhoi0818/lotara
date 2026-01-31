@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Sparkles, MapPin, Briefcase, Clock, Loader2 } from "lucide-react";
+import {
+  Sparkles,
+  MapPin,
+  Briefcase,
+  Clock,
+  Loader2,
+  RotateCcw,
+} from "lucide-react";
 import { recommendService } from "@/services/recommend.service";
 
 interface PersonaAnswers {
@@ -244,6 +251,7 @@ export default function PersonaPage() {
 
     try {
       const recommendations = await recommendService.getRecommendations(userId);
+      console.log("Received recommendations:", recommendations);
       localStorage.setItem("recommendations", JSON.stringify(recommendations));
       router.push("/result");
     } catch (error) {
@@ -451,9 +459,9 @@ export default function PersonaPage() {
                 size="lg"
                 variant="outline"
                 onClick={() => router.push("/onboarding")}
-                className="px-8 h-12 text-base gap-2 border-2"
+                className="px-8 h-12 text-base gap-2 border-2 hover:text-primary-foreground"
               >
-                <Sparkles className="w-5 h-5" />
+                <RotateCcw className="w-5 h-5" />
                 Create new persona
               </Button>
             </div>

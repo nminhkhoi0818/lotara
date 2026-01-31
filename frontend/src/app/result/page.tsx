@@ -1,117 +1,110 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookmarkPlus, Share2, ChevronRight } from "lucide-react";
-
-const cities = [
-  {
-    name: "Hanoi",
-    why: "Perfect blend of history, culture, and vibrant street food scene. Ideal for cultural explorers with morning-person energy.",
-    budget: "$$",
-    crowd: "High",
-    days: 3,
-  },
-  {
-    name: "Ha Long Bay",
-    why: "Stunning natural wonder offering relaxation and adventure. Great for photography and peaceful moments.",
-    budget: "$",
-    crowd: "Medium",
-    days: 2,
-  },
-  {
-    name: "Da Nang",
-    why: "Perfect workcation hub with great cafes, beaches, and reliable WiFi. Balance work and exploration seamlessly.",
-    budget: "$$",
-    crowd: "Low-Medium",
-    days: 3,
-  },
-];
-
-const hotels = [
-  {
-    name: "Heritage Charm Hotel",
-    price: 45,
-    wifi: "Excellent",
-    noise: "Quiet",
-    why: "Central location with traditional architecture. Budget-friendly with character.",
-  },
-  {
-    name: "Modern Workspace Stay",
-    price: 75,
-    wifi: "Premium",
-    noise: "Quiet",
-    why: "Dedicated co-working space. Perfect for remote workers needing productivity.",
-  },
-  {
-    name: "Beachfront Wellness Resort",
-    price: 120,
-    wifi: "Good",
-    noise: "Very Quiet",
-    why: "Spa and wellness facilities. Best for relaxation-focused travelers.",
-  },
-  {
-    name: "Cultural Guesthouse",
-    price: 35,
-    wifi: "Good",
-    noise: "Moderate",
-    why: "Run by locals offering authentic experiences and insider tips.",
-  },
-];
-
-const itinerary = [
-  {
-    time: "Morning",
-    activities: [
-      "Sunrise at Hoan Kiem Lake",
-      "Local coffee at traditional cafes",
-      "Visit Ho Chi Minh Mausoleum",
-    ],
-  },
-  {
-    time: "Afternoon",
-    activities: [
-      "Street food tour in Old Quarter",
-      "Temple exploration",
-      "Work block - 2-3 hours",
-    ],
-  },
-  {
-    time: "Evening",
-    activities: [
-      "Sunset cruise on Red River",
-      "Traditional water puppet show",
-      "Dinner at rooftop restaurant",
-    ],
-  },
-  {
-    time: "Night",
-    activities: [
-      "Explore night markets",
-      "Evening walk along illuminated streets",
-      "Relax at local tea house",
-    ],
-  },
-];
+import {
+  BookmarkPlus,
+  Share2,
+  ChevronRight,
+  Clock,
+  MapPin,
+  DollarSign,
+} from "lucide-react";
 
 export default function ResultPage() {
   // const router = useRouter();
+  const [recommendations, setRecommendations] = useState<any>(null);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("cities");
 
+  useEffect(() => {
+    const stored = localStorage.getItem("recommendations");
+    if (stored) {
+      setRecommendations(JSON.parse(stored));
+    }
+  }, []);
+
   const handleSave = () => {
     setSaved(true);
-    localStorage.setItem(
-      "savedTrips",
-      JSON.stringify([
-        { name: "My Vietnam Trip", date: new Date().toLocaleDateString() },
-      ]),
-    );
+    if (recommendations) {
+      localStorage.setItem(
+        "savedTrips",
+        JSON.stringify([
+          {
+            name: recommendations.itinerary.trip_name,
+            date: new Date().toLocaleDateString(),
+          },
+        ]),
+      );
+    }
   };
+
+  if (!recommendations) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center">
+          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+          <p className="text-lg text-muted-foreground">Loading your trip...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const itinerary = recommendations.itinerary;
+  const tripOverview = itinerary.trip_overview;
+
+  // Extract cities (simplified)
+  const cities = [
+    {
+      name: "Hoi An",
+      why: "Charming ancient town with lantern-lit streets, tailor shops, and delicious local cuisine.",
+      budget: "$$",
+      crowd: "Medium",
+      days: 3,
+    },
+    {
+      name: "Da Nang",
+      why: "Modern coastal city with beautiful beaches, Marble Mountains, and great cafes.",
+      budget: "$$",
+      crowd: "Low-Medium",
+      days: 2,
+    },
+    {
+      name: "Hanoi",
+      why: "Vibrant capital city with rich history, cultural landmarks, and bustling street life.",
+      budget: "$$",
+      crowd: "High",
+      days: 4,
+    },
+    {
+      name: "Ha Long Bay",
+      why: "Stunning natural wonder with limestone karsts, perfect for overnight cruises and relaxation.",
+      budget: "$$$",
+      crowd: "Medium",
+      days: 1,
+    },
+  ];
+
+  // Extract hotels from itinerary
+  const hotels = tripOverview
+    .flatMap((day: any) =>
+      day.events.filter((e: any) => e.event_type === "hotel_checkin"),
+    )
+    .map((event: any) => ({
+      name: event.location.name,
+      price: parseInt(event.budget.split(" ")[0].replace("$", "")) || 0,
+      wifi: "Good",
+      noise: "Quiet",
+      why: event.description,
+    }));
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -122,11 +115,11 @@ export default function ResultPage() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
-                  Your Personalized Vietnam Trip
+                  {itinerary.trip_name}
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl">
-                  A 11-day journey tailored to your personality, budget, and
-                  travel style
+                  From {itinerary.start_date} to {itinerary.end_date} •{" "}
+                  {itinerary.total_days} days
                 </p>
               </div>
 
@@ -153,15 +146,15 @@ export default function ResultPage() {
                   Total Days
                 </p>
                 <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  11 Days
+                  {itinerary.total_days} Days
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-xl bg-secondary/5 border border-secondary/20">
                 <p className="text-xs md:text-sm text-muted-foreground mb-2">
-                  Estimated Budget
+                  Average Daily Budget
                 </p>
                 <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  $850-1200
+                  {itinerary.average_budget_spend_per_day}
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-xl bg-accent/5 border border-accent/20">
@@ -169,7 +162,7 @@ export default function ResultPage() {
                   Cities
                 </p>
                 <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  3 Cities
+                  {cities.length} Cities
                 </p>
               </div>
             </div>
@@ -235,7 +228,7 @@ export default function ResultPage() {
 
             {/* Hotels Tab */}
             <TabsContent value="hotels" className="space-y-4">
-              {hotels.map((hotel, i) => (
+              {hotels.map((hotel: any, i: any) => (
                 <Card
                   key={i}
                   className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-colors"
@@ -279,26 +272,62 @@ export default function ResultPage() {
             </TabsContent>
 
             {/* Itinerary Tab */}
-            <TabsContent value="itinerary" className="space-y-4">
-              {itinerary.map((period, i) => (
+            <TabsContent value="itinerary" className="space-y-6">
+              {tripOverview.map((day: any, i: any) => (
                 <Card
                   key={i}
                   className="p-6 md:p-8 rounded-2xl border-border/50"
                 >
-                  <h3 className="text-xl md:text-2xl font-bold text-foreground mb-4">
-                    {period.time}
-                  </h3>
-                  <ul className="space-y-2">
-                    {period.activities.map((activity, j) => (
-                      <li
+                  <div className="mb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                      Day {day.trip_number}:{" "}
+                      {new Date(day.start_date).toLocaleDateString("en-US", {
+                        weekday: "long",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </h3>
+                    <p className="text-muted-foreground">{day.summary}</p>
+                  </div>
+                  <div className="space-y-4">
+                    {day.events.map((event: any, j: any) => (
+                      <div
                         key={j}
-                        className="flex items-start gap-3 text-muted-foreground"
+                        className="flex gap-4 p-4 rounded-lg bg-muted/30 border border-border/30"
                       >
-                        <ChevronRight className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span>{activity}</span>
-                      </li>
+                        {event.image_url && (
+                          <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                            <img
+                              src={event.image_url}
+                              alt={event.description}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-foreground">
+                              {event.start_time} - {event.end_time}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-foreground mb-1">
+                            {event.description}
+                          </h4>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>{event.location.name}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="w-4 h-4" />
+                              <span>{event.budget}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </Card>
               ))}
             </TabsContent>
