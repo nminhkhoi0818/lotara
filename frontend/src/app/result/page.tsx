@@ -21,7 +21,7 @@ export default function ResultPage() {
   // const router = useRouter();
   const [recommendations, setRecommendations] = useState<any>(null);
   const [saved, setSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState("cities");
+  const [activeTab, setActiveTab] = useState("itinerary");
 
   useEffect(() => {
     const stored = localStorage.getItem("recommendations");
@@ -60,38 +60,6 @@ export default function ResultPage() {
 
   const itinerary = recommendations.itinerary;
   const tripOverview = itinerary.trip_overview;
-
-  // Extract cities (simplified)
-  const cities = [
-    {
-      name: "Hoi An",
-      why: "Charming ancient town with lantern-lit streets, tailor shops, and delicious local cuisine.",
-      budget: "$$",
-      crowd: "Medium",
-      days: 3,
-    },
-    {
-      name: "Da Nang",
-      why: "Modern coastal city with beautiful beaches, Marble Mountains, and great cafes.",
-      budget: "$$",
-      crowd: "Low-Medium",
-      days: 2,
-    },
-    {
-      name: "Hanoi",
-      why: "Vibrant capital city with rich history, cultural landmarks, and bustling street life.",
-      budget: "$$",
-      crowd: "High",
-      days: 4,
-    },
-    {
-      name: "Ha Long Bay",
-      why: "Stunning natural wonder with limestone karsts, perfect for overnight cruises and relaxation.",
-      budget: "$$$",
-      crowd: "Medium",
-      days: 1,
-    },
-  ];
 
   // Extract hotels from itinerary
   const hotels = tripOverview
@@ -140,7 +108,7 @@ export default function ResultPage() {
             </div>
 
             {/* Trip Stats */}
-            <div className="grid grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-2 gap-4 md:gap-6">
               <div className="p-4 md:p-6 rounded-xl bg-primary/5 border border-primary/20">
                 <p className="text-xs md:text-sm text-muted-foreground mb-2">
                   Total Days
@@ -157,14 +125,6 @@ export default function ResultPage() {
                   {itinerary.average_budget_spend_per_day}
                 </p>
               </div>
-              <div className="p-4 md:p-6 rounded-xl bg-accent/5 border border-accent/20">
-                <p className="text-xs md:text-sm text-muted-foreground mb-2">
-                  Cities
-                </p>
-                <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  {cities.length} Cities
-                </p>
-              </div>
             </div>
           </div>
 
@@ -174,57 +134,10 @@ export default function ResultPage() {
             onValueChange={setActiveTab}
             className="mb-12"
           >
-            <TabsList className="grid w-full md:w-auto grid-cols-3 mb-8">
-              <TabsTrigger value="cities">Cities</TabsTrigger>
-              <TabsTrigger value="hotels">Hotels</TabsTrigger>
+            <TabsList className="grid w-full md:w-auto grid-cols-2 mb-8">
               <TabsTrigger value="itinerary">Itinerary</TabsTrigger>
+              <TabsTrigger value="hotels">Hotels</TabsTrigger>
             </TabsList>
-
-            {/* Cities Tab */}
-            <TabsContent value="cities" className="space-y-4">
-              {cities.map((city, i) => (
-                <Card
-                  key={i}
-                  className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-colors"
-                >
-                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
-                    <div>
-                      <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
-                        <span className="text-3xl md:text-4xl">📍</span>
-                        {city.name}
-                      </h3>
-                      <p className="text-muted-foreground">{city.why}</p>
-                    </div>
-                    <div className="flex gap-4 shrink-0">
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Budget Level
-                        </p>
-                        <p className="text-xl font-bold text-foreground">
-                          {city.budget}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Crowds
-                        </p>
-                        <p className="text-xl font-bold text-foreground">
-                          {city.crowd}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          Days
-                        </p>
-                        <p className="text-xl font-bold text-foreground">
-                          {city.days}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
-              ))}
-            </TabsContent>
 
             {/* Hotels Tab */}
             <TabsContent value="hotels" className="space-y-4">
