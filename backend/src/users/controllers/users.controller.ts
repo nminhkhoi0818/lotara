@@ -129,7 +129,7 @@ export class UsersController {
   async submitOnboarding(
     @Body() submitUserOnboardingDto: SubmitUserOnboardingDto,
     @Query('stream') stream?: string,
-    @Res() res?: Response,
+    @Res({ passthrough: true }) res?: Response,
   ): Promise<UserPersonaResponseDto | void> {
     try {
       const enableStream = stream === 'true';
@@ -181,6 +181,7 @@ export class UsersController {
         }
 
         res.end();
+        return;
       } else {
         // Non-streaming response
         const { user, aiMessage } =
