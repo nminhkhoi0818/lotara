@@ -342,6 +342,78 @@ Returns all places scored and ranked for the user. Same structure as the persona
 
 ---
 
+### 3. Generate AI-Powered Itinerary
+**POST** `/recommendations/:userId/generate`
+
+Generate an AI-powered travel itinerary based on the user's persona and preferences.
+
+This endpoint:
+1. Fetches the user's persona data from the database
+2. Sends it to the AI service for itinerary generation
+3. Returns the AI-generated itinerary
+
+#### URL Parameters
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| userId | string (UUID) | User ID |
+
+#### Example Request
+```
+POST /recommendations/550e8400-e29b-41d4-a716-446655440000/generate
+```
+
+#### Success Response (200 OK)
+Returns the AI service response as-is. The exact structure depends on the AI service.
+
+Example:
+```json
+{
+  "itinerary": {
+    "days": [...],
+    "recommendations": [...],
+    "summary": "..."
+  }
+}
+```
+
+#### Error Responses
+
+**404 Not Found - User Not Found**
+```json
+{
+  "statusCode": 404,
+  "message": "User 550e8400-e29b-41d4-a716-446655440000 not found"
+}
+```
+
+**404 Not Found - Missing Persona Data**
+```json
+{
+  "statusCode": 404,
+  "message": "User 550e8400-e29b-41d4-a716-446655440000 does not have persona answers. Please complete onboarding first."
+}
+```
+
+**503 Service Unavailable - AI Service Down**
+```json
+{
+  "statusCode": 503,
+  "message": "AI service did not respond",
+  "error": "No response received from the AI service. Please try again later."
+}
+```
+
+**500 Internal Server Error - AI Service Error**
+```json
+{
+  "statusCode": 500,
+  "message": "AI service returned an error",
+  "error": {...}
+}
+```
+
+---
+
 ## Error Handling
 
 ### Standard Error Response Format
