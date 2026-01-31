@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Post } from '@nestjs/common';
 import { RecommendationsService } from '../services/recommendations.service';
 
 @Controller('recommendations')
@@ -45,7 +45,7 @@ export class RecommendationsController {
     @Query('limit') limit?: string,
   ) {
     const limitNum = limit ? Math.min(parseInt(limit), 50) : 10;
-    return this.recommendationsService.getRecommendationsForUser(
+    return await this.recommendationsService.getRecommendationsForUser(
       userId,
       limitNum,
     );
@@ -61,6 +61,27 @@ export class RecommendationsController {
    */
   @Get(':userId/all')
   async getAllPlaceScores(@Param('userId') userId: string) {
-    return this.recommendationsService.getAllPlaceScores(userId);
+    return await this.recommendationsService.getAllPlaceScores(userId);
+  }
+
+  /**
+   * POST /recommendations/:userId/generate
+   *
+   * Generate an AI-powered itinerary for a user.
+   *
+   * This endpoint:
+   * 1. Fetches the user's persona data from the database
+   * 2. Sends it to the AI service for itinerary generation
+   * 3. Returns the AI-generated itinerary
+   *
+   * Response:
+   * Returns the AI service response as-is
+   *
+   * @param userId User ID
+   * @returns AI-generated itinerary
+   */
+  @Post(':userId/generate')
+  async generateItinerary(@Param('userId') userId: string) {
+    return await this.recommendationsService.generateAIItinerary(userId);
   }
 }
