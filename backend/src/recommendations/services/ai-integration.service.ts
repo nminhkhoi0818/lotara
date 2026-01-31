@@ -51,7 +51,7 @@ export class AIIntegrationService {
           headers: {
             'Content-Type': 'application/json',
           },
-          timeout: 120000, // 120 second timeout for AI generation
+          timeout: 180000, // 180 second timeout for AI generation
         },
       );
 
