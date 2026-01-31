@@ -13,6 +13,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { recommendService } from "@/services/recommend.service";
+import { userService } from "@/services/user.service";
 import LoadingOverlay from "@/components/loading-overlay";
 
 interface PersonaAnswers {
@@ -34,16 +35,63 @@ export default function PersonaPage() {
   const [loading, setLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
+  const [summary, setSummary] = useState("");
+  const [displayedSummary, setDisplayedSummary] = useState("");
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+
+  const handlePersonaSummary = async () => {
+    try {
+      const data = localStorage.getItem("onboardingAnswer");
+      console.log("Onboarding data for persona summary:", data);
+      setIsStreaming(true);
+      setIsTyping(true);
+      await userService.getPersonaSummary(
+        data ? JSON.parse(data) : null,
+        (event) => {
+          if (event.type === "user") {
+            localStorage.setItem("userId", event.data.userId);
+          }
+          if (event.type === "ai_chunk") {
+            setSummary((prev) => prev + event.data);
+          } else if (event.type === "complete") {
+            setIsStreaming(false);
+          } else if (event.type === "error") {
+            console.error("Error:", event.data);
+            setIsStreaming(false);
+          }
+        },
+      );
+    } catch (error) {
+      console.error("Failed to fetch persona summary:", error);
+      setIsStreaming(false);
+    }
+  };
 
   useEffect(() => {
     const stored = localStorage.getItem("personaAnswers");
     if (stored) {
       setPersona(JSON.parse(stored));
       setLoading(false);
+      handlePersonaSummary();
     } else {
       router.push("/onboarding");
     }
   }, [router]);
+
+  useEffect(() => {
+    if (isTyping && summary && displayedSummary.length < summary.length) {
+      const timer = setTimeout(() => {
+        setDisplayedSummary(summary.slice(0, displayedSummary.length + 1));
+      }, 20);
+      return () => clearTimeout(timer);
+    } else if (
+      displayedSummary.length === summary.length &&
+      summary.length > 0
+    ) {
+      setIsTyping(false);
+    }
+  }, [isTyping, summary, displayedSummary]);
 
   if (loading) return null;
 
@@ -111,139 +159,10 @@ export default function PersonaPage() {
     evening: "Late Starter",
   };
 
-  // Generate AI-like persona summary
-  const generatePersonaSummary = (): string => {
-    const parts: string[] = [];
-
-    // Opening based on companions + duration
-    if (persona.companions === "solo") {
-      parts.push(
-        `You're embarking on a ${durationLabels[persona.duration].toLowerCase()} solo adventure`,
-      );
-    } else if (persona.companions === "couple") {
-      parts.push(
-        `You and your partner are planning a ${durationLabels[persona.duration].toLowerCase()} romantic escape`,
-      );
-    } else if (persona.companions === "family_kids") {
-      parts.push(
-        `Your family (with kids) is planning a ${durationLabels[persona.duration].toLowerCase()} Vietnam adventure`,
-      );
-    } else if (persona.companions === "family_adults") {
-      parts.push(
-        `You're traveling with family for ${durationLabels[persona.duration].toLowerCase()}`,
-      );
-    } else {
-      parts.push(
-        `You and your friends are planning a ${durationLabels[persona.duration].toLowerCase()} group trip`,
-      );
-    }
-
-    // Travel style + activity level
-    if (persona.travelStyle === "adventure" && persona.activity === "high") {
-      parts.push(
-        `packed with adrenaline-pumping outdoor activities and physically challenging experiences`,
-      );
-    } else if (persona.travelStyle === "adventure") {
-      parts.push(
-        `focused on adventure and outdoor exploration at a comfortable pace`,
-      );
-    } else if (persona.travelStyle === "cultural") {
-      parts.push(
-        `diving deep into Vietnam's rich history, traditions, and local culture`,
-      );
-    } else if (persona.travelStyle === "nature") {
-      parts.push(
-        `immersing in Vietnam's stunning natural landscapes and pristine beaches`,
-      );
-    } else if (persona.travelStyle === "food") {
-      parts.push(
-        `on a culinary journey through Vietnam's incredible food scene`,
-      );
-    } else if (persona.travelStyle === "wellness") {
-      parts.push(`centered on relaxation, wellness, and peaceful rejuvenation`);
-    } else if (persona.travelStyle === "photography") {
-      parts.push(
-        `capturing Vietnam's most photogenic and Instagram-worthy moments`,
-      );
-    }
-
-    // Budget + accommodation style
-    if (persona.budget === "budget" && persona.accommodation === "hostel") {
-      parts.push(
-        `You're traveling smart on a budget, staying in social hostels and guesthouses while maximizing authentic local experiences.`,
-      );
-    } else if (
-      persona.budget === "luxury" &&
-      persona.accommodation === "premium"
-    ) {
-      parts.push(
-        `You appreciate the finer things, with luxury accommodations and premium experiences throughout your journey.`,
-      );
-    } else if (persona.budget === "midrange") {
-      parts.push(
-        `You're seeking great value with comfortable ${accommodationLabels[persona.accommodation].toLowerCase()}, balancing quality and cost.`,
-      );
-    } else {
-      parts.push(
-        `You prefer ${accommodationLabels[persona.accommodation].toLowerCase()} that align with your ${budgetLabels[persona.budget].toLowerCase()} travel style.`,
-      );
-    }
-
-    // Pace + crowds preference
-    if (persona.pace === "slow" && persona.crowds === "avoid") {
-      parts.push(
-        `Your ideal trip moves slowly and deliberately, avoiding tourist crowds to discover Vietnam's hidden gems and connect with local life.`,
-      );
-    } else if (persona.pace === "fast" && persona.crowds === "embrace") {
-      parts.push(
-        `You want to see it all at a fast pace, hitting the iconic hotspots and maximizing every moment of your trip.`,
-      );
-    } else if (persona.pace === "balanced") {
-      parts.push(
-        `You prefer a balanced approach - mixing popular attractions with off-the-beaten-path discoveries, with time to both explore and relax.`,
-      );
-    } else if (persona.crowds === "avoid") {
-      parts.push(
-        `You're drawn to quieter, less touristy spots where you can experience authentic Vietnam away from the crowds.`,
-      );
-    } else {
-      parts.push(
-        `You're open to experiencing both famous landmarks and hidden local spots at a ${paceLabels[persona.pace].toLowerCase()} travel pace.`,
-      );
-    }
-
-    // Timing + remote work
-    if (persona.remote && persona.timing === "morning") {
-      parts.push(
-        `As a remote worker and early riser, your itinerary balances productive work sessions with sunrise adventures and morning explorations.`,
-      );
-    } else if (persona.remote) {
-      parts.push(
-        `Working remotely during your trip, you'll need reliable WiFi and a flexible schedule that accommodates both work and exploration.`,
-      );
-    } else if (persona.timing === "morning") {
-      parts.push(
-        `As an early bird, you'll catch magical sunrises and beat the crowds to Vietnam's most spectacular sites.`,
-      );
-    } else if (persona.timing === "evening") {
-      parts.push(
-        `You prefer a relaxed morning routine, with your adventures and activities scheduled for afternoons and vibrant evenings.`,
-      );
-    } else {
-      parts.push(
-        `Your flexible schedule allows you to experience Vietnam at all hours - from dawn to dusk.`,
-      );
-    }
-
-    return parts.join(" ");
-  };
-
-  const personaSummary = persona ? generatePersonaSummary() : "";
-
   const handleGenerateTrip = async () => {
     const userId = localStorage.getItem("userId");
     if (!userId) {
-      setGenerateError("User ID not found. Please complete onboarding again.");
+      setGenerateError("User not found. Please complete onboarding again.");
       return;
     }
 
@@ -302,7 +221,10 @@ export default function PersonaPage() {
                 </div>
               </div>
               <p className="text-base md:text-lg leading-relaxed text-foreground/90">
-                {personaSummary}
+                {displayedSummary}
+                {(isStreaming || isTyping) && (
+                  <span className="inline-block w-0.5 h-5 bg-primary ml-1 animate-pulse" />
+                )}
               </p>
             </Card>
           </div>
