@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api/index.py"
+    }
+  ],
+  "env": {
+    "LOTARA_MODEL": "gemini-2.5-flash",
+    "OPIK_PROJECT": "Lotara",
+    "PYTHONPATH": "services/backend:src"
+  },
+  "regions": ["iad1"],
+  "functions": {
+    "api/index.py": {
+      "memory": 2048,
+      "maxDuration": 10
+    }
+  }
+}

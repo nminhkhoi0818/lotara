@@ -1,0 +1,33 @@
+# === CORE API DEPENDENCIES ===
+# FastAPI and server
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+python-multipart>=0.0.6
+sse-starlette>=1.6.5
+
+# Vercel serverless adapter
+mangum>=0.17.0
+
+# HTTP client
+httpx>=0.27.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+# === AI AGENT DEPENDENCIES ===
+# Google ADK and AI
+google-adk>=0.1.0
+google-genai>=1.60.0
+pydantic>=2.6.0
+
+# OpenTelemetry and tracing
+opik>=1.0.0
+openinference-instrumentation>=0.1.34
+openinference-instrumentation-google-adk>=0.1.0
+opentelemetry-instrumentation-google-genai>=0.6b0
+
+# === DATABASE ===
+supabase>=2.0.0
+
+# === UTILITIES ===
+PyYAML>=6.0.3

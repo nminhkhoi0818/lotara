@@ -1,0 +1,84 @@
+# =========================
+# Python cache & binaries
+# =========================
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.dylib
+.Python
+
+# =========================
+# Environment & secrets
+# =========================
+.env
+.env.local
+
+# =========================
+# Virtual environments
+# =========================
+.venv/
+venv/
+ENV/
+env/
+.venv
+*.pyc
+.cache
+
+# =========================
+# Build artifacts
+# =========================
+build/
+dist/
+*.egg-info/
+
+# =========================
+# Node (if any)
+# =========================
+node_modules/
+
+# =========================
+# IDE / OS noise
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Tests & local experiments
+# =========================
+tests/
+test_*
+*_test.py
+src/travel_lotara/test_agents.py
+src/quick_test.py
+
+# =========================
+# Docs (keep README)
+# =========================
+docs/
+*.md
+!README.md
+
+# =========================
+# Local-only tooling
+# =========================
+docker-compose.yml
+Dockerfile
+deployment/
+.github/
+
+# =========================
+# Local scripts (ONLY if not imported)
+# =========================
+demo.py
+struct_project.py
+quick_start_local.py
+client_example.py
+
+# =========================
+# Vercel internals
+# =========================
+.vercel/
