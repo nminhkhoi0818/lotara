@@ -13,6 +13,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { recommendService } from "@/services/recommend.service";
+import LoadingOverlay from "@/components/loading-overlay";
 
 interface PersonaAnswers {
   duration: string;
@@ -264,6 +265,7 @@ export default function PersonaPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-linear-to-br from-background to-background">
+      {isGenerating && <LoadingOverlay />}
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
           {/* Header */}
