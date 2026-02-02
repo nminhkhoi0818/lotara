@@ -15,6 +15,7 @@ import {
 import { recommendService } from "@/services/recommend.service";
 import { userService } from "@/services/user.service";
 import LoadingOverlay from "@/components/loading-overlay";
+import LoadingWave from "@/components/loading-wave";
 
 interface PersonaAnswers {
   duration: string;
@@ -220,9 +221,10 @@ export default function PersonaPage() {
                   </p>
                 </div>
               </div>
+              {summary.length === 0 && <LoadingWave />}
               <p className="text-base md:text-lg leading-relaxed text-foreground/90">
                 {displayedSummary}
-                {(isStreaming || isTyping) && (
+                {summary.length !== 0 && (isStreaming || isTyping) && (
                   <span className="inline-block w-0.5 h-5 bg-primary ml-1 animate-pulse" />
                 )}
               </p>

@@ -8,20 +8,28 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookmarkPlus, Share2, Clock, MapPin, DollarSign } from "lucide-react";
+import { userService } from "@/services/user.service";
+import { toast } from "sonner";
 import {
-  BookmarkPlus,
-  Share2,
-  ChevronRight,
-  Clock,
-  MapPin,
-  DollarSign,
-} from "lucide-react";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 export default function ResultPage() {
   // const router = useRouter();
   const [recommendations, setRecommendations] = useState<any>(null);
   const [saved, setSaved] = useState(false);
   const [activeTab, setActiveTab] = useState("itinerary");
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [tripNote, setTripNote] = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("recommendations");
@@ -30,18 +38,26 @@ export default function ResultPage() {
     }
   }, []);
 
-  const handleSave = () => {
-    setSaved(true);
-    if (recommendations) {
-      localStorage.setItem(
-        "savedTrips",
-        JSON.stringify([
-          {
-            name: recommendations.itinerary.trip_name,
-            date: new Date().toLocaleDateString(),
-          },
-        ]),
-      );
+  const handleSave = async () => {
+    if (!recommendations) return;
+
+    setSaving(true);
+    try {
+      await userService.saveTrip(localStorage.getItem("userId") || "", {
+        name: recommendations.itinerary.trip_name,
+        itinerary_data: recommendations.itinerary,
+        notes: tripNote,
+      });
+
+      setSaved(true);
+      setShowSaveDialog(false);
+      setTripNote("");
+      toast.success("Trip saved successfully!");
+    } catch (error) {
+      console.error("Error saving trip:", error);
+      toast.error("Failed to save trip.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -92,18 +108,54 @@ export default function ResultPage() {
               </div>
 
               <div className="flex gap-3 shrink-0">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  onClick={handleSave}
-                  disabled={saved}
-                >
-                  <BookmarkPlus className="w-5 h-5" />
-                  {saved ? "Saved" : "Save Trip"}
-                </Button>
-                <Button variant="outline" size="lg">
+                <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" size="lg" disabled={saved}>
+                      <BookmarkPlus className="w-5 h-5" />
+                      {saved ? "Saved" : "Save Trip"}
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Save Trip</DialogTitle>
+                      <DialogDescription>
+                        Add an optional note to remember why you loved this trip
+                        or any special details.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                      <Textarea
+                        placeholder="Enter your trip notes here... (optional)"
+                        value={tripNote}
+                        onChange={(e) => setTripNote(e.target.value)}
+                        rows={4}
+                        className="resize-none"
+                      />
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowSaveDialog(false)}
+                        disabled={saving}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSave} disabled={saving}>
+                        {saving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                            Saving...
+                          </>
+                        ) : (
+                          "Save Trip"
+                        )}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+                {/* <Button variant="outline" size="lg">
                   <Share2 className="w-5 h-5" />
-                </Button>
+                </Button> */}
               </div>
             </div>
 

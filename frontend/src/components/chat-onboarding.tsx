@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ChatBubble } from "@/components/chat-bubble";
 import { Loader2, ArrowRight } from "lucide-react";
-import { userService } from "@/services/user.service";
 import { questionService, Question } from "@/services/question.service";
 
 interface ChatMessage {
