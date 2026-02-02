@@ -10,6 +10,7 @@ http://localhost:3000
 - [Users Endpoints](#users-endpoints)
 - [Questions Endpoints](#questions-endpoints)
 - [Recommendations Endpoints](#recommendations-endpoints)
+- [Saved Trips Endpoints](#saved-trips-endpoints)
 - [Error Handling](#error-handling)
 
 ---
@@ -436,6 +437,201 @@ Example:
   "statusCode": 500,
   "message": "AI service returned an error",
   "error": {...}
+}
+```
+
+---
+
+## Saved Trips Endpoints
+
+### 1. Save a Trip
+**POST** `/users/:userId/saved-trips`
+
+Save a trip to the user's saved trips collection. This allows users to bookmark AI-generated itineraries for later viewing.
+
+#### URL Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | UUID | Yes | The user's unique identifier |
+
+#### Request Body
+```json
+{
+  "name": "Summer 2026 Vietnam Adventure",
+  "itinerary_data": {
+    "days": [
+      {
+        "day": 1,
+        "location": "Hanoi",
+        "activities": [...]
+      }
+    ],
+    "budget": "midrange",
+    "duration": "medium"
+  },
+  "notes": "Optional notes about the trip"
+}
+```
+
+#### Request Parameters
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| name | string | Yes | Name/title for the saved trip |
+| itinerary_data | object | Yes | Full itinerary response from AI service |
+| notes | string | No | Optional user notes about the trip |
+
+#### Success Response (201 Created)
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "650e8400-e29b-41d4-a716-446655440001",
+  "name": "Summer 2026 Vietnam Adventure",
+  "itinerary_data": { ... },
+  "notes": "Optional notes about the trip",
+  "created_at": "2026-02-02T10:30:00.000Z",
+  "updated_at": "2026-02-02T10:30:00.000Z"
+}
+```
+
+---
+
+### 2. Get All Saved Trips
+**GET** `/users/:userId/saved-trips`
+
+Retrieve all saved trips for a user, ordered by most recent first.
+
+#### URL Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | UUID | Yes | The user's unique identifier |
+
+#### Success Response (200 OK)
+```json
+[
+  {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "user_id": "650e8400-e29b-41d4-a716-446655440001",
+    "name": "Summer 2026 Vietnam Adventure",
+    "itinerary_data": { ... },
+    "notes": "Optional notes",
+    "created_at": "2026-02-02T10:30:00.000Z",
+    "updated_at": "2026-02-02T10:30:00.000Z"
+  },
+  {
+    "id": "750e8400-e29b-41d4-a716-446655440000",
+    "user_id": "650e8400-e29b-41d4-a716-446655440001",
+    "name": "Workcation Mode - Da Nang Focus",
+    "itinerary_data": { ... },
+    "notes": null,
+    "created_at": "2026-01-15T08:20:00.000Z",
+    "updated_at": "2026-01-15T08:20:00.000Z"
+  }
+]
+```
+
+---
+
+### 3. Get Saved Trip by ID
+**GET** `/users/:userId/saved-trips/:tripId`
+
+Retrieve a specific saved trip.
+
+#### URL Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | UUID | Yes | The user's unique identifier |
+| tripId | UUID | Yes | The saved trip's unique identifier |
+
+#### Success Response (200 OK)
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "650e8400-e29b-41d4-a716-446655440001",
+  "name": "Summer 2026 Vietnam Adventure",
+  "itinerary_data": { ... },
+  "notes": "Optional notes about the trip",
+  "created_at": "2026-02-02T10:30:00.000Z",
+  "updated_at": "2026-02-02T10:30:00.000Z"
+}
+```
+
+#### Error Responses
+- **404 Not Found**: Trip not found or doesn't belong to user
+```json
+{
+  "statusCode": 404,
+  "message": "Saved trip {tripId} not found or doesn't belong to user {userId}",
+  "error": "Not Found"
+}
+```
+
+---
+
+### 4. Update Saved Trip
+**PUT** `/users/:userId/saved-trips/:tripId`
+
+Update a saved trip's information. All fields are optional.
+
+#### URL Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | UUID | Yes | The user's unique identifier |
+| tripId | UUID | Yes | The saved trip's unique identifier |
+
+#### Request Body (all fields optional)
+```json
+{
+  "name": "Updated trip name",
+  "itinerary_data": { ... },
+  "notes": "Updated notes"
+}
+```
+
+#### Success Response (200 OK)
+```json
+{
+  "id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "650e8400-e29b-41d4-a716-446655440001",
+  "name": "Updated trip name",
+  "itinerary_data": { ... },
+  "notes": "Updated notes",
+  "created_at": "2026-02-02T10:30:00.000Z",
+  "updated_at": "2026-02-02T12:45:00.000Z"
+}
+```
+
+---
+
+### 5. Delete Saved Trip
+**DELETE** `/users/:userId/saved-trips/:tripId`
+
+Delete a saved trip permanently.
+
+#### URL Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | UUID | Yes | The user's unique identifier |
+| tripId | UUID | Yes | The saved trip's unique identifier |
+
+#### Success Response (204 No Content)
+No response body.
+
+---
+
+### 6. Get Saved Trips Count
+**GET** `/users/:userId/saved-trips/meta/count`
+
+Get the total number of saved trips for a user.
+
+#### URL Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| userId | UUID | Yes | The user's unique identifier |
+
+#### Success Response (200 OK)
+```json
+{
+  "count": 5
 }
 ```
 
