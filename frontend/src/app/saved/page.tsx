@@ -6,49 +6,84 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Bookmark, Calendar, ArrowRight, Plus } from "lucide-react";
 import Link from "next/link";
-
-interface SavedTrip {
-  name: string;
-  date: string;
-  days?: number;
-  cities?: string[];
-}
+import { userService, SaveTripResponse } from "@/services/user.service";
+import { Loader2 } from "lucide-react";
 
 export default function SavedTripsPage() {
   const router = useRouter();
-  const [trips, setTrips] = useState<SavedTrip[]>([]);
+  const [trips, setTrips] = useState<SaveTripResponse[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const stored = localStorage.getItem("savedTrips");
-    if (stored) {
+    const fetchTrips = async () => {
       try {
-        setTrips(JSON.parse(stored));
-      } catch {
-        setTrips([]);
+        const userId = localStorage.getItem("userId");
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+
+        const savedTrips = await userService.getAllSavedTrips(userId);
+        setTrips(savedTrips);
+      } catch (err) {
+        console.error("Failed to fetch saved trips:", err);
+        setError("Failed to load saved trips");
+      } finally {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    };
+
+    fetchTrips();
   }, []);
 
-  const sampleTrips: SavedTrip[] = [
-    {
-      name: "Summer 2026 Vietnam Adventure",
-      date: "Jan 15, 2026",
-      days: 11,
-      cities: ["Hanoi", "Ha Long Bay", "Da Nang"],
-    },
-    {
-      name: "Workcation Mode - Da Nang Focus",
-      date: "Dec 20, 2025",
-      days: 14,
-      cities: ["Da Nang", "Hoi An"],
-    },
-  ];
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
 
-  const allTrips = trips.length > 0 ? trips : sampleTrips;
+  const extractTripInfo = (trip: SaveTripResponse) => {
+    const itinerary = trip.itinerary_data;
+    const days = itinerary?.days?.length || itinerary?.totalDays;
+    const cities =
+      itinerary?.cities ||
+      (itinerary?.days
+        ?.map((day: { city?: string }) => day.city)
+        .filter(Boolean) as string[]) ||
+      [];
+    const uniqueCities = [...new Set(cities)] as string[];
+    return { days, cities: uniqueCities };
+  };
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <main className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <p className="text-muted-foreground">Loading your saved trips...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <main className="flex-1 flex items-center justify-center">
+          <Card className="p-8 text-center">
+            <p className="text-destructive mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>Try again</Button>
+          </Card>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -75,59 +110,73 @@ export default function SavedTripsPage() {
           </div>
 
           {/* Trips Grid */}
-          {allTrips.length > 0 ? (
+          {trips.length > 0 ? (
             <div className="grid md:grid-cols-2 gap-6">
-              {allTrips.map((trip, i) => (
-                <Card
-                  key={i}
-                  className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-all hover:shadow-lg cursor-pointer group"
-                >
-                  <div className="flex flex-col gap-6 h-full">
-                    <div>
-                      <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                        {trip.name}
-                      </h3>
+              {trips.map((trip) => {
+                const { days, cities } = extractTripInfo(trip);
+                return (
+                  <Card
+                    key={trip.id}
+                    className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-all hover:shadow-lg cursor-pointer group"
+                  >
+                    <div className="flex flex-col gap-6 h-full">
+                      <div>
+                        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
+                          {trip.name}
+                        </h3>
 
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-                        <Calendar className="w-4 h-4" />
-                        <span>Created {trip.date}</span>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                          <Calendar className="w-4 h-4" />
+                          <span>Created {formatDate(trip.created_at)}</span>
+                        </div>
+
+                        {days && (
+                          <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-sm font-medium text-primary mb-4">
+                            {days} days
+                          </div>
+                        )}
                       </div>
 
-                      {trip.days && (
-                        <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-sm font-medium text-primary mb-4">
-                          {trip.days} days
+                      {cities && cities.length > 0 && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                            Cities
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {cities.map((city, j) => (
+                              <span
+                                key={j}
+                                className="px-3 py-1 rounded-full bg-secondary/10 text-sm font-medium text-foreground"
+                              >
+                                {city}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       )}
-                    </div>
 
-                    {trip.cities && (
-                      <div>
-                        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
-                          Cities
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {trip.cities.map((city, j) => (
-                            <span
-                              key={j}
-                              className="px-3 py-1 rounded-full bg-secondary/10 text-sm font-medium text-foreground"
-                            >
-                              {city}
-                            </span>
-                          ))}
+                      {trip.notes && (
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">
+                            Notes
+                          </p>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {trip.notes}
+                          </p>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    <Button
-                      className="mt-auto w-full gap-2 group"
-                      onClick={() => router.push("/result")}
-                    >
-                      View trip
-                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </div>
-                </Card>
-              ))}
+                      <Button
+                        className="mt-auto w-full gap-2 group"
+                        onClick={() => router.push(`/saved/${trip.id}`)}
+                      >
+                        View trip
+                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <Card className="p-12 md:p-16 rounded-2xl text-center border-border/50">

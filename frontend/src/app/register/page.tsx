@@ -256,7 +256,7 @@ export default function RegisterPage() {
           <Card className="p-6 backdrop-blur-sm bg-card/30 border-border/30">
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
                 <span className="text-muted-foreground">
@@ -264,7 +264,7 @@ export default function RegisterPage() {
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
                 <span className="text-muted-foreground">
@@ -272,7 +272,7 @@ export default function RegisterPage() {
                 </span>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <div className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
+                <div className="shrink-0 w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center">
                   <Check className="w-3 h-3 text-primary" />
                 </div>
                 <span className="text-muted-foreground">

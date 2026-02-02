@@ -1,4 +1,4 @@
-import { post, get } from "@/lib/api-client";
+import { post, get, del } from "@/lib/api-client";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -27,6 +27,17 @@ export interface OnboardingResponse {
   accommodation: string;
   remote: boolean;
   timing: string;
+}
+
+export interface SaveTripResponse {
+  id: string;
+  user_id: string;
+  name: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  itinerary_data: any;
+  notes: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface StreamEvent {
@@ -114,5 +125,32 @@ export const userService = {
 
   getUserById: async (userId: string): Promise<OnboardingResponse> => {
     return get<OnboardingResponse>(`/users/${userId}`);
+  },
+
+  saveTrip: async (
+    userId: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    tripData: any,
+  ): Promise<SaveTripResponse> => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return post<SaveTripResponse, any>(
+      `/users/${userId}/saved-trips`,
+      tripData,
+    );
+  },
+
+  getAllSavedTrips: async (userId: string): Promise<SaveTripResponse[]> => {
+    return get<SaveTripResponse[]>(`/users/${userId}/saved-trips`);
+  },
+
+  getSavedTripById: async (
+    userId: string,
+    tripId: string,
+  ): Promise<SaveTripResponse> => {
+    return get<SaveTripResponse>(`/users/${userId}/saved-trips/${tripId}`);
+  },
+
+  deleteSavedTrip: async (userId: string, tripId: string): Promise<void> => {
+    return del<void>(`/users/${userId}/saved-trips/${tripId}`);
   },
 };
