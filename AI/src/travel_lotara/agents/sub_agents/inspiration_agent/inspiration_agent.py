@@ -17,9 +17,11 @@
 
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
+from google.adk.tools import FunctionTool
 from src.travel_lotara.tools import (
     user_profile_tool, 
-    date_season_tool
+    date_season_tool,
+    chromadb_retrieval_tool,
 )
 # from src.travel_lotara.tools.search import google_search_grounding
 
@@ -50,7 +52,7 @@ inspiration_agent_config = AgentConfig(
     description="Provide travel inspiration based on user preferences and constraints.",
     instruction=INSPIRATION_AGENT_INSTR,
     # output_schema=Inpsiration_Output,  # Removed to allow sequential flow
-    output_key="inspiration_output",
+    output_key="inspiration_output"
 )
 
 inspiration_agent = BaseAgent(

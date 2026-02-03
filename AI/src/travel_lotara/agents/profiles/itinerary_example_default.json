@@ -15,17 +15,14 @@
     },
     "itinerary": {
       "trip_name": "Summer Trip to Tokyo",
-      "start_date": "2025-06-15",
-      "end_date": "2025-06-16",
       "origin": "Ho Chi Minh City, Vietnam",
       "destination": "Tokyo, Japan",
       "total_days": "2",
       "average_ratings": "4.8",
+      "average_budget_spend_per_day": "400 USD",
       "trip_overview": [
         {
           "trip_number": 1,
-          "start_date": "2025-06-15",
-          "end_date": "2025-06-16",
           "summary": "Arrival in Tokyo, hotel check-in, visit Senso-ji Temple and Tokyo Tower.",
           "events": [
             {
@@ -76,8 +73,6 @@
         },
         {
           "trip_number": 2,
-          "start_date": "2025-06-16",
-          "end_date": "2025-06-16",
           "summary": "Visit to Meiji Shrine, hotel check-out, flight back to Ho Chi Minh City.",
           "events": [
             {
@@ -121,15 +116,6 @@
           ]
         }
       ]
-    },
-    "origin": "Ho Chi Minh City, Vietnam",
-    "destination": "Tokyo, Japan",    
-    "start_date": "2025-06-15",
-    "end_date": "2025-06-17",    
-    "itinerary_start_date" : "2025-06-15",
-    "itinerary_end_date" : "2025-06-17",
-    "total_days": 2,
-    "average_budget_spend_per_day": "400 USD",
-    "average_ratings": "4.8" 
+    }
   }
 }

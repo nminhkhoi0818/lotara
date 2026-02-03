@@ -175,7 +175,7 @@ class OpikTracer:
         agent,
         metadata: Optional[Dict[str, Any]] = None,
         tags: Optional[List[str]] = None,
-        use_dedicated_tracer: bool = False
+        use_dedicated_tracer: bool = False  # Default False for hierarchical agents
     ):
         """
         Instrument an ADK agent with automatic tracing.
@@ -191,12 +191,19 @@ class OpikTracer:
             metadata: Optional custom metadata for this agent
             tags: Optional custom tags for this agent
             use_dedicated_tracer: If True, creates a dedicated tracer for this agent
+                                (use for standalone agents only).
+                                For hierarchical agents (root with sub-agents), use False (default)
+                                to ensure proper trace hierarchy with individual agent names.
         
         Example:
             tracer = OpikTracer()
             
-            # Basic usage
-            tracer.instrument_agent(root_agent)
+            # For hierarchical setup (root + sub-agents) - RECOMMENDED
+            tracer.instrument_agent(root_agent)  # use_dedicated_tracer=False (default)
+            # Sub-agents automatically get individual names in trace hierarchy
+            
+            # For standalone individual agents (not in hierarchy)
+            tracer.instrument_agent(standalone_agent, use_dedicated_tracer=True)
             
             # With custom metadata
             tracer.instrument_agent(
@@ -211,13 +218,18 @@ class OpikTracer:
         try:
             # Determine which tracer to use
             if use_dedicated_tracer:
+                # Create dedicated tracer for standalone agents
                 agent_tracer = self.create_agent_tracer(
                     agent.name,
                     tags=tags,
                     metadata=metadata
                 )
+                print(f"[INFO - Opik Tracing] Created dedicated tracer for '{agent.name}' (standalone mode)")
             else:
+                # Use shared tracer for hierarchical agents
+                # track_adk_agent_recursive will properly capture individual agent names
                 agent_tracer = self.opik_tracer
+                print(f"[INFO - Opik Tracing] Using shared tracer for '{agent.name}' (hierarchical mode)")
             
             if not agent_tracer:
                 print(f"[WARNING] No tracer available for agent: {agent.name}")
@@ -225,11 +237,13 @@ class OpikTracer:
             
             # Use official track_adk_agent_recursive for automatic instrumentation
             # This recursively adds Opik callbacks to the agent and all sub-agents
+            # Each agent's name will appear in the trace hierarchy automatically
             track_adk_agent_recursive(agent, agent_tracer)
             
             metadata_str = f" with metadata: {metadata}" if metadata else ""
             tags_str = f" and tags: {tags}" if tags else ""
-            print(f"[OK] Instrumented agent '{agent.name}'{metadata_str}{tags_str}")
+            hierarchy_mode = "dedicated" if use_dedicated_tracer else "hierarchical"
+            print(f"[OK] Instrumented agent '{agent.name}'{metadata_str}{tags_str} (mode={hierarchy_mode})")
             
         except Exception as e:
             print(f"[WARNING] Failed to instrument agent '{agent.name}': {e}")

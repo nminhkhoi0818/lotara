@@ -1,204 +1,406 @@
 """
-RAG Engine
+ChromaDB Cloud Test File
+========================
+This file uses ChromaDB Cloud to store and query embeddings.
 
-Provides retrieval over curated travel knowledge with strict freshness metadata.
-Uses simple in-memory search for demo (can be upgraded to vector DB).
+SETUP INSTRUCTIONS:
+1. Install chromadb: pip install chromadb
+2. Login to Chroma Cloud: chroma login
+3. Create a database: chroma db create lotara-tourism
+4. Connect to database: chroma db connect lotara-tourism --env-file
+   (This creates a .env file with CHROMA_API_KEY, CHROMA_TENANT, CHROMA_DATABASE)
+5. Run this script: python test_cloud.py
 """
 
-from __future__ import annotations
+import chromadb
+import os
+import json
+import time
+import re
+from google import genai
+from dotenv import load_dotenv
 
-from datetime import date, datetime, timedelta
-from typing import Any, Iterable
-
-from pydantic import BaseModel, Field, field_validator
-
-
-class RAGDocument(BaseModel):
-    """A retrieved document with freshness metadata."""
-    source: str
-    last_updated: date
-    ttl_days: int = Field(ge=1, le=365)
-    content: str
-    metadata: dict[str, Any] = Field(default_factory=dict)
-
-    @field_validator("last_updated", mode="before")
-    @classmethod
-    def _parse_last_updated(cls, value: Any) -> date:
-        if isinstance(value, date):
-            return value
-        return datetime.strptime(str(value), "%Y-%m-%d").date()
-
-    def is_fresh(self) -> bool:
-        return date.today() <= self.last_updated + timedelta(days=self.ttl_days)
+# Load environment variables from .env file (created by chroma db connect)
+load_dotenv()
 
 
-class RAGQuery(BaseModel):
-    """Structured query for RAG retrieval."""
-    query: str
-    top_k: int = Field(default=5, ge=1, le=20)
-    filters: dict[str, Any] = Field(default_factory=dict)
-
-
-class RAGEngine:
+def load_api_key():
     """
-    Simple RAG engine with in-memory knowledge base.
+    Load Google GenAI API key from environment variables.
     
-    For production: Replace with vector database (Pinecone, Weaviate, etc.)
+    Looks for GOOGLE_API_KEY or GOOGLE_GENAI_API_KEY in .env file.
+    
+    Returns:
+        str: API key
+        
+    Raises:
+        ValueError: If API key not found in environment
     """
+    api_key = os.getenv("GOOGLE_API_KEY") or os.getenv("GOOGLE_GENAI_API_KEY")
     
-    def __init__(self):
-        self._knowledge_base = self._load_knowledge_base()
+    if not api_key:
+        raise ValueError(
+            "Google GenAI API key not found. "
+            "Please set GOOGLE_API_KEY or GOOGLE_GENAI_API_KEY in your .env file"
+        )
     
-    def _load_knowledge_base(self) -> list[RAGDocument]:
-        """Load curated travel knowledge."""
-        today = date.today()
-        
-        return [
-            # Tokyo
-            RAGDocument(
-                source="Tokyo Food Guide 2026",
-                last_updated=today - timedelta(days=15),
-                ttl_days=90,
-                content="Tsukiji Outer Market remains the best place for fresh sushi and street food in Tokyo. Open 5am-2pm daily except Sundays. Must-try: tuna sashimi, tamago, and fresh uni. Average cost: $30-50 per person.",
-                metadata={"destination": "Tokyo", "category": "food"}
-            ),
-            RAGDocument(
-                source="Tokyo Temples & Shrines",
-                last_updated=today - timedelta(days=30),
-                ttl_days=180,
-                content="Senso-ji Temple in Asakusa is Tokyo's oldest temple (founded 628 AD). Free entry. Best visited early morning (6-8am) or evening (5-7pm) to avoid crowds. Don't miss Nakamise shopping street leading to the temple.",
-                metadata={"destination": "Tokyo", "category": "culture"}
-            ),
-            RAGDocument(
-                source="Tokyo Transportation Guide",
-                last_updated=today - timedelta(days=10),
-                ttl_days=60,
-                content="Suica or Pasmo card essential for metro/train travel. Tokyo Metro covers most tourist areas. Day pass: ¥600 ($5). Trains stop running around midnight. Taxi expensive ($15 minimum).",
-                metadata={"destination": "Tokyo", "category": "transport"}
-            ),
-            RAGDocument(
-                source="Tokyo Budget Tips 2026",
-                last_updated=today - timedelta(days=5),
-                ttl_days=30,
-                content="Budget travelers can eat well for $25-35/day using convenience stores, ramen shops, and food halls. Mid-range: $80-120/day. Convenience store breakfasts are surprisingly good and cost $3-5.",
-                metadata={"destination": "Tokyo", "category": "budget"}
-            ),
-            
-            # Paris
-            RAGDocument(
-                source="Paris Museums 2026",
-                last_updated=today - timedelta(days=20),
-                ttl_days=90,
-                content="Louvre Museum tickets €17 online, €15 at venue. Free first Sunday of month (crowds!). Paris Museum Pass (€62 for 2 days) worthwhile if visiting 3+ museums. Book Louvre tickets 2-3 days ahead.",
-                metadata={"destination": "Paris", "category": "culture"}
-            ),
-            RAGDocument(
-                source="Paris Food Scene",
-                last_updated=today - timedelta(days=25),
-                ttl_days=90,
-                content="Best authentic bistros in Saint-Germain-des-Prés and Le Marais. Avoid tourist traps near Eiffel Tower. Dinner reservations essential for popular spots. Budget: €15-25 for lunch menu, €35-60 for dinner.",
-                metadata={"destination": "Paris", "category": "food"}
-            ),
-            RAGDocument(
-                source="Paris Metro Guide",
-                last_updated=today - timedelta(days=12),
-                ttl_days=60,
-                content="Paris Metro Navigo Easy card recommended over single tickets. Day pass €8. Be alert for pickpockets on lines 1, 2, and 4. Stations close around 1am (2am weekends).",
-                metadata={"destination": "Paris", "category": "transport"}
-            ),
-            
-            # Bali
-            RAGDocument(
-                source="Bali Safety & Travel Tips",
-                last_updated=today - timedelta(days=8),
-                ttl_days=90,
-                content="Ubud ideal for culture and nature (rice terraces, temples, yoga). Seminyak for beaches and nightlife. Uluwatu for surfing. Rent scooter $5/day but traffic chaotic. Grab app works well for car transport.",
-                metadata={"destination": "Bali", "category": "general"}
-            ),
-            RAGDocument(
-                source="Bali Temple Etiquette",
-                last_updated=today - timedelta(days=45),
-                ttl_days=180,
-                content="Sarongs required at temples (usually provided for rent). Remove shoes. Women on period not permitted in some temples. Donations expected (Rp 20,000-50,000 / $1.50-3). Dress modestly.",
-                metadata={"destination": "Bali", "category": "culture"}
-            ),
-            RAGDocument(
-                source="Bali Food & Prices 2026",
-                last_updated=today - timedelta(days=10),
-                ttl_days=30,
-                content="Local warungs: $2-4 per meal. Western restaurants in Seminyak/Ubud: $8-15. Street food safe if cooked fresh. Try: nasi goreng, mie goreng, satay, babi guling. Bottled water essential.",
-                metadata={"destination": "Bali", "category": "food"}
-            ),
-            
-            # General Travel Tips
-            RAGDocument(
-                source="Visa Requirements 2026",
-                last_updated=today - timedelta(days=3),
-                ttl_days=30,
-                content="US citizens: Japan visa-free 90 days, France (Schengen) visa-free 90 days, Indonesia visa-free 30 days (extendable to 60). Check passport validity (6 months minimum for most countries).",
-                metadata={"category": "visas"}
-            ),
-            RAGDocument(
-                source="Travel Insurance Recommendations",
-                last_updated=today - timedelta(days=7),
-                ttl_days=60,
-                content="World Nomads and SafetyWing popular for travelers. Coverage: medical ($50k+), evacuation, trip cancellation, lost baggage. Cost: $40-80 per week depending on age and destination. Book before trip.",
-                metadata={"category": "insurance"}
-            ),
-            RAGDocument(
-                source="Best Time to Book Flights",
-                last_updated=today - timedelta(days=14),
-                ttl_days=45,
-                content="International flights: book 2-3 months ahead for best prices. Tuesday/Wednesday often cheapest to book and fly. Use Google Flights price calendar. Avoid peak seasons (July-August, Dec-Jan) for savings.",
-                metadata={"category": "flights"}
-            ),
-        ]
-    
-    async def retrieve(self, query: RAGQuery) -> list[RAGDocument]:
-        """
-        Retrieve documents matching query.
-        
-        Uses simple keyword matching for demo.
-        For production: Use vector embeddings and semantic search.
-        """
-        query_lower = query.query.lower()
-        scored_docs = []
-        
-        for doc in self._knowledge_base:
-            # Skip stale documents
-            if not doc.is_fresh():
-                continue
-            
-            # Apply filters
-            if query.filters:
-                match = True
-                for key, value in query.filters.items():
-                    if doc.metadata.get(key) != value:
-                        match = False
-                        break
-                if not match:
-                    continue
-            
-            # Simple relevance scoring (count keyword matches)
-            content_lower = doc.content.lower()
-            source_lower = doc.source.lower()
-            
-            score = 0
-            for word in query_lower.split():
-                if len(word) > 3:  # Skip short words
-                    if word in content_lower:
-                        score += 2
-                    if word in source_lower:
-                        score += 1
-            
-            if score > 0:
-                scored_docs.append((score, doc))
-        
-        # Sort by score and return top_k
-        scored_docs.sort(reverse=True, key=lambda x: x[0])
-        return [doc for _, doc in scored_docs[:query.top_k]]
+    return api_key
 
-    async def validate_freshness(self, documents: Iterable[RAGDocument]) -> bool:
-        """Ensure all documents are fresh."""
-        return all(doc.is_fresh() for doc in documents)
 
+# GenAI client for embeddings
+genai_client = genai.Client(api_key=load_api_key())
+
+# -----------------------------
+# Initialize ChromaDB Client
+# -----------------------------
+# Try Cloud first, fallback to local PersistentClient
+USE_CLOUD = True  # Cloud is now configured!
+
+if USE_CLOUD:
+    try:
+        chroma_api_key = os.getenv("CHROMA_API_KEY")
+        chroma_tenant = os.getenv("CHROMA_TENANT")
+        chroma_database = os.getenv("CHROMA_DATABASE")
+        
+        if chroma_api_key and chroma_tenant and chroma_database:
+            print(f"Connecting to Chroma Cloud...")
+            print(f"  Tenant: {chroma_tenant}")
+            print(f"  Database: {chroma_database}")
+            
+            chroma_client = chromadb.CloudClient(
+                tenant=chroma_tenant,
+                database=chroma_database,
+                api_key=chroma_api_key
+            )
+            print("Connected to Chroma Cloud successfully!\n")
+        else:
+            raise ValueError("Missing CHROMA_API_KEY, CHROMA_TENANT, or CHROMA_DATABASE in .env file")
+
+    except Exception as e:
+        print(f"Failed to connect to Chroma Cloud: {e}")
+        print("\nTo use Chroma Cloud, run these commands first:")
+        print("  1. chroma login")
+        print("  2. chroma db create lotara-tourism")
+        print("  3. chroma db connect lotara-tourism --env-file")
+        print("\nFalling back to local storage...\n")
+        USE_CLOUD = False
+
+if not USE_CLOUD:
+    # Use local PersistentClient (works without any cloud setup)
+    persist_dir = os.path.join(os.path.dirname(__file__), "chroma_cloud_data")
+    chroma_client = chromadb.PersistentClient(path=persist_dir)
+    print(f"Using local ChromaDB storage at: {persist_dir}\n")
+
+# Create or get collection
+collection = chroma_client.get_or_create_collection(name="Lotara")
+print(f"Collection 'Lotara' ready. Current count: {collection.count()}")
+
+
+# -----------------------------
+# Embedding function for queries only
+# -----------------------------
+def get_embedding(text, model="text-embedding-004"):
+    """Generate embedding for query text (not for uploading data)"""
+    result = genai_client.models.embed_content(model=model, contents=[text])
+    vec = result.embeddings[0].values
+    return vec
+
+
+# --------------------------------------------------
+# --------------------------------------------------
+# Extract clean description from document text
+# --------------------------------------------------
+def extract_description(text: str) -> str:
+    """Extract just the description part from document text."""
+    import re
+    # Pattern: "Description: <text>. Keywords:"
+    pattern = r'Description:\s*([^.]+(?:\.[^K]+)*?)\s*\.\s*Keywords:'
+    match = re.search(pattern, text)
+    if match:
+        return match.group(1).strip()
+    # Fallback: return first sentence after "Description:"
+    pattern2 = r'Description:\s*([^.]+)'
+    match2 = re.search(pattern2, text)
+    if match2:
+        return match2.group(1).strip()
+    return ""
+
+
+# --------------------------------------------------
+# Parse structured data from document text
+# --------------------------------------------------
+def parse_document_text(text: str) -> dict:
+    """
+    Parse Destinations, Hotels, and Activities from document text.
+    
+    Text format:
+    "...Attraction: Name, best time: morning, budget level: medium, average duration: 4h. 
+    Local food spot: Name, budget level: high, average dining time: 2h. 
+    Hotel: Name, cost category: high, review quality: excellent.
+    Popular activities include: Activity1, Activity2, ..."
+    """
+    parsed = {
+        "Destinations": [],
+        "Hotels": [],
+        "Activities": []
+    }
+    
+    # Parse Attractions and Cuisine (Destinations)
+    import re
+    
+    # Find all attractions
+    attraction_pattern = r'Attraction:\s*([^,]+),\s*best time to visit:\s*([^,]+),\s*budget level:\s*([^,]+),\s*average duration:\s*([^.]+)'
+    attractions = re.findall(attraction_pattern, text)
+    
+    # Find all food spots
+    food_pattern = r'Local food spot:\s*([^,]+),\s*budget level:\s*([^,]+),\s*average dining time:\s*([^.]+)'
+    foods = re.findall(food_pattern, text)
+    
+    # Combine attractions and foods into Destinations
+    for idx in range(max(len(attractions), len(foods))):
+        dest = {}
+        
+        if idx < len(attractions):
+            name, time, budget, duration = attractions[idx]
+            dest['place'] = {
+                'name': name.strip(),
+                'time': time.strip(),
+                'budget': budget.strip(),
+                'average_timespan': duration.strip()
+            }
+        
+        if idx < len(foods):
+            name, budget, duration = foods[idx]
+            dest['cuisine'] = {
+                'name': name.strip(),
+                'budget': budget.strip(),
+                'average_timespan': duration.strip()
+            }
+        
+        if dest:
+            parsed["Destinations"].append(dest)
+    
+    # Parse Hotels
+    hotel_pattern = r'Hotel:\s*([^,]+),\s*cost category:\s*([^,]+),\s*review quality:\s*([^.]+)'
+    hotels = re.findall(hotel_pattern, text)
+    
+    for name, cost, reviews in hotels:
+        parsed["Hotels"].append({
+            'name': name.strip(),
+            'cost': cost.strip(),
+            'reviews': reviews.strip()
+        })
+    
+    # Parse Activities
+    activities_pattern = r'Popular activities include:\s*([^.]+)\.'
+    activities_match = re.search(activities_pattern, text)
+    
+    if activities_match:
+        activities_text = activities_match.group(1)
+        # Split by comma and clean
+        activities = [act.strip() for act in activities_text.split(',') if act.strip()]
+        parsed["Activities"] = activities
+    
+    return parsed
+
+
+# --------------------------------------------------
+# Retrieval using ChromaDB Cloud
+# --------------------------------------------------
+def retrieve_top_k(query, k=10):
+    """Retrieve top k locations from ChromaDB Cloud based on query"""
+    query_embedding = get_embedding(query)
+    
+    results = collection.query(
+        query_embeddings=[query_embedding],
+        n_results=k,
+        include=["documents", "metadatas", "distances"]
+    )
+    
+    # Extract data from METADATA (not documents - documents are plain text descriptions)
+    retrieved_locations = []
+    
+    if results and results.get("metadatas") and len(results["metadatas"]) > 0:
+        metadatas = results["metadatas"][0]
+        documents = results["documents"][0]
+        
+        for idx, metadata in enumerate(metadatas):
+            if metadata:
+                document_text = documents[idx] if idx < len(documents) else ""
+                
+                # Parse structured data from document text
+                parsed_data = parse_document_text(document_text)
+                
+                # Extract clean description (not full document)
+                clean_description = extract_description(document_text)
+                
+                # Build location object from metadata and parsed document
+                # Match exact format from retrievaled_data_example.json
+                location_data = {
+                    "Index": metadata.get("index", idx + 1),  # Add Index field
+                    "Location name": metadata.get("location_name", ""),
+                    "Location": metadata.get("province", ""),
+                    "Description": clean_description if clean_description else document_text,
+                    "Rating": metadata.get("rating", 0),
+                    "Image": metadata.get("image", ""),
+                    "Keywords": metadata.get("keywords", ""),
+                    "Destinations": parsed_data["Destinations"],
+                    "Hotels": parsed_data["Hotels"],
+                    "Activities": parsed_data["Activities"]
+                }
+                retrieved_locations.append(location_data)
+    
+    return retrieved_locations
+
+
+# --------------------------------------------------
+# JSON extractor (CRITICAL FIX)
+# --------------------------------------------------
+def extract_json(text: str):
+    if not text or not text.strip():
+        raise ValueError("Empty response from LLM")
+
+    # Remove markdown fences if present
+    cleaned = re.sub(r"```json|```", "", text).strip()
+
+    # Try to find and parse the entire JSON array
+    # Find the first '[' and last ']' to get the full array
+    start_idx = cleaned.find('[')
+    end_idx = cleaned.rfind(']')
+    
+    if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+        json_str = cleaned[start_idx:end_idx + 1]
+        try:
+            return json.loads(json_str)
+        except json.JSONDecodeError:
+            # Try to fix common issues
+            pass
+    
+    # Fallback: try parsing the whole cleaned text
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        pass
+
+    raise ValueError("No valid JSON found in LLM output")
+
+
+# --------------------------------------------------
+# Generation (STRICT JSON SELECTOR)
+# --------------------------------------------------
+def recommend_locations(user_query, top_k=5):
+    retrieved = retrieve_top_k(user_query, k=10)
+
+    # IMPORTANT: pass RAW JSON, not flattened text
+    context_json = json.dumps(retrieved, ensure_ascii=False, indent=2)
+
+    prompt = f"""
+You are a strict JSON selector.
+
+Return ONLY a valid JSON array.
+Do NOT explain.
+Do NOT use markdown.
+Do NOT include any text outside JSON.
+
+Task:
+Select the best {top_k} locations that best match the user profile.
+
+Selection priorities:
+1. Match with travel style, pace, and activity level
+2. Cultural relevance
+3. Budget compatibility
+4. Overall rating
+
+User profile:
+{user_query}
+
+Available locations (JSON array):
+{context_json}
+
+Output format:
+[
+  {{
+    "Location name": string,
+    "Location": string,
+    "Description": string,
+    "Rating": number,
+    "Image": string,
+    "Keywords": string,
+    "Destinations": array,
+    "Hotels": array,
+    "Activities": array
+  }}
+]
+
+Return ONLY JSON.
+"""
+
+    response = genai_client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+
+    raw_text = response.text
+
+    try:
+        return extract_json(raw_text)
+    except Exception as e:
+        print("\n----- RAW LLM OUTPUT (DEBUG) -----")
+        print(raw_text)
+        print("---------------------------------\n")
+        raise e
+
+
+# --------------------------------------------------
+# Public API for external use
+# --------------------------------------------------
+def initialize_chromadb():
+    """
+    Verify ChromaDB cloud connection (data already uploaded).
+    Call this once before using retrieve_top_k or recommend_locations.
+    
+    Returns:
+        tuple: (collection, total_count)
+    """
+    count = collection.count()
+    print(f"ChromaDB Cloud ready: {count} locations available")
+    return collection, count
+
+
+def get_collection_info():
+    """
+    Get information about the ChromaDB collection.
+    
+    Returns:
+        dict: Collection metadata including count, name, and cloud status
+    """
+    return {
+        "name": collection.name,
+        "count": collection.count(),
+        "using_cloud": USE_CLOUD,
+        "tenant": os.getenv("CHROMA_TENANT") if USE_CLOUD else None,
+        "database": os.getenv("CHROMA_DATABASE") if USE_CLOUD else None,
+    }
+
+
+# --------------------------------------------------
+# Main (for testing)
+# --------------------------------------------------
+if __name__ == "__main__":
+    # Test retrieval from ChromaDB Cloud (data already uploaded)
+    print(f"Connected to ChromaDB Cloud with {collection.count()} locations\n")
+    
+    user_input = "Give me some place near the Hoan Kiem lake"
+
+    print(f"\nAnalyzing your request: '{user_input}'...\n")
+
+    try:
+        results = recommend_locations(user_input, top_k=5)
+
+        print("=" * 50)
+        print("LOTARA RECOMMENDATIONS (FROM CHROMA CLOUD)")
+        print("=" * 50)
+        print(json.dumps(results, indent=2, ensure_ascii=False))
+
+    except Exception as e:
+        print(f"ERROR: {e}")

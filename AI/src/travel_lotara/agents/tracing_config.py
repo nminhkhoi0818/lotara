@@ -7,7 +7,8 @@ across all agents in the system with proper metadata, tags, and prompt tracking.
 
 from typing import Dict, Any, List, Optional
 from src.travel_lotara.tracking import get_tracer
-from src.travel_lotara.agents.prompt_manager import prompt_manager
+# Lazy import prompt_manager to avoid circular import
+# from src.travel_lotara.agents.prompt_manager import prompt_manager
 
 # Agent metadata configurations
 AGENT_METADATA_CONFIG = {
@@ -59,6 +60,60 @@ AGENT_METADATA_CONFIG = {
             "purpose": "Perform Google searches for itinerary planning",
             "version": "1.0"
         }
+    },
+    "formatter_agent": {
+        "tags": ["formatting", "output", "structure"],
+        "metadata": {
+            "agent_type": "single",
+            "role": "output_formatter",
+            "team": "output",
+            "purpose": "Format and structure the generated travel inspiration into a user-friendly output",
+            "version": "1.0"
+        }
+    },
+    "rag_retrieval_parallel_agent": {
+        "tags": ["parallel", "retrieval", "chromadb", "rag"],
+        "metadata": {
+            "agent_type": "parallel",
+            "role": "data_retrieval",
+            "team": "planning",
+            "purpose": "Parallel retrieval of attractions, hotels, and activities from ChromaDB",
+            "version": "1.0",
+            "retrieval_agents": ["attraction_retrieval", "hotel_retrieval", "activities_retrieval"]
+        }
+    },
+    "attraction_retrieval_agent": {
+        "tags": ["retrieval", "attractions", "chromadb", "rag"],
+        "metadata": {
+            "agent_type": "retrieval",
+            "role": "attraction_retrieval",
+            "team": "planning",
+            "purpose": "Retrieve tourism attractions from ChromaDB",
+            "version": "1.0",
+            "parent_agent": "rag_retrieval_parallel_agent"
+        }
+    },
+    "hotel_retrieval_agent": {
+        "tags": ["retrieval", "hotels", "chromadb", "rag"],
+        "metadata": {
+            "agent_type": "retrieval",
+            "role": "hotel_retrieval",
+            "team": "planning",
+            "purpose": "Retrieve hotel options from ChromaDB",
+            "version": "1.0",
+            "parent_agent": "rag_retrieval_parallel_agent"
+        }
+    },
+    "activities_retrieval_agent": {
+        "tags": ["retrieval", "activities", "chromadb", "rag"],
+        "metadata": {
+            "agent_type": "retrieval",
+            "role": "activities_retrieval",
+            "team": "planning",
+            "purpose": "Retrieve activities and experiences from ChromaDB",
+            "version": "1.0",
+            "parent_agent": "rag_retrieval_parallel_agent"
+        }
     }
 }
 
@@ -107,6 +162,9 @@ def _enrich_with_prompt_metadata(agent_name: str, config: Dict[str, Any]) -> Dic
         Enriched configuration with prompt metadata
     """
     try:
+        # Lazy import to avoid circular dependency
+        from src.travel_lotara.agents.prompt_manager import prompt_manager
+        
         prompt_metadata = prompt_manager.get_prompt_metadata(agent_name)
         
         if prompt_metadata:
@@ -160,7 +218,8 @@ def instrument_agent_with_config(agent, agent_name: str, additional_metadata: Op
     tracer.instrument_agent(
         agent,
         tags=config["tags"],
-        metadata=config["metadata"]
+        metadata=config["metadata"],
+        use_dedicated_tracer=True
     )
     
     print(f"[OK] Instrumented '{agent_name}' with Opik tracing")
@@ -224,10 +283,11 @@ def setup_agent_tracing(
         tracer.instrument_agent(
             agent,
             tags=root_config["tags"],
-            metadata=root_config["metadata"]
+            metadata=root_config["metadata"],
+            use_dedicated_tracer=False  # Use shared tracer for hierarchical mode
         )
         
-        print(f"[OK] Instrumented root_agent and all sub-agents with Opik tracing")
+        print(f"[OK] Instrumented root_agent and all sub-agents with Opik tracing (hierarchical mode)")
     
     # Optionally instrument individual agents if provided
     # (useful for standalone testing or non-hierarchical setups)
@@ -243,6 +303,21 @@ def setup_agent_tracing(
     elif agent.name == "google_search_agent":
         instrument_agent_with_config(agent, "google_search_agent", common_metadata)
 
+    elif agent.name == "formatter_agent":
+        instrument_agent_with_config(agent, "formatter_agent", common_metadata)
+
+    elif agent.name == "rag_retrieval_parallel_agent":
+        instrument_agent_with_config(agent, "rag_retrieval_parallel_agent", common_metadata)
+
+    elif agent.name == "attraction_retrieval_agent":
+        instrument_agent_with_config(agent, "attraction_retrieval_agent", common_metadata)
+    
+    elif agent.name == "hotel_retrieval_agent":
+        instrument_agent_with_config(agent, "hotel_retrieval_agent", common_metadata)
+    
+    elif agent.name == "activities_retrieval_agent":
+        instrument_agent_with_config(agent, "activities_retrieval_agent", common_metadata)
+    
 
 def add_agent_metadata_config(agent_name: str, tags: List[str], metadata: Dict[str, Any]):
     """

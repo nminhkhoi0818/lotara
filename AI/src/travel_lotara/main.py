@@ -15,6 +15,7 @@ import argparse
 import asyncio
 import json
 import uuid
+import os
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any
 import time
@@ -44,7 +45,7 @@ async def run_agent(
     Returns:
         Tuple of (response_text, session)
     """
-    from src.travel_lotara.agents import root_agent
+    from src.travel_lotara.agents.root_agent import root_agent
     
     tracer = get_tracer()
     session_service = InMemorySessionService()
@@ -79,7 +80,7 @@ async def run_agent(
     # Set default values for required context variables
     # Dates will be determined by agents based on user input
     session.state["origin"] = ""
-    session.state["destination"] = ""
+    session.state["destination"] = "Vietnam"  # Default destination
     session.state["total_days"] = "10"
     session.state["average_budget_spend_per_day"] = "$50-100"
     session.state["user_profile"] = {}
@@ -93,6 +94,10 @@ async def run_agent(
                 session.state[key] = str(value)
             else:
                 session.state[key] = value
+    
+    # Ensure destination is always set (fallback to Vietnam)
+    if not session.state.get("destination"):
+        session.state["destination"] = "Vietnam"
 
     final_text_parts: list[str] = []
 
@@ -245,7 +250,6 @@ async def async_main(args: argparse.Namespace) -> None:
         print("=" * 80 + "\n", flush=True)
 
         # Save results to JSON files
-        import os
         import sys
         OUTPUT_DIR = "output"
         STATE_DUMP_DIR = "state_dumps"

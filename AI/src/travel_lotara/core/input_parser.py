@@ -103,6 +103,10 @@ def parse_backend_input(backend_data: Dict[str, Any]) -> Dict[str, Any]:
     timing_key = backend_data.get("timing", "flexible")
     remote = backend_data.get("remote", False)
     
+    # Default: Recommend destinations in Vietnam
+    destination = "Vietnam"
+    origin = ""  # Will be determined by agents based on recommended destination
+    
     # Get duration in days (dates will be determined by agents)
     duration_days = DURATION_MAP.get(duration_key, DURATION_MAP["medium"])["days"]
     
@@ -142,14 +146,14 @@ def parse_backend_input(backend_data: Dict[str, Any]) -> Dict[str, Any]:
         },
         "itinerary": {
             "trip_name": "",
-            "origin": "",
-            "destination": "",  # Will be refined by inspiration agent
+            "origin": "",  # Will be determined by agents
+            "destination": destination,  # Vietnam
             "total_days": str(duration_days),
             "average_ratings": "",
             "trip_overview": []
         },
         "origin": "",
-        "destination": "",
+        "destination": destination,  # Vietnam - agents will recommend specific regions
         "total_days": duration_days,
         "average_budget_spend_per_day": budget_info["daily"],
         "average_ratings": ""
@@ -163,26 +167,33 @@ def create_natural_language_query(backend_data: Dict[str, Any]) -> str:
     Convert backend JSON to natural language query for the agent.
     
     This creates a human-readable request that the agent can process.
+    Default behavior: Recommend destinations within Vietnam based on preferences.
     """
     duration_key = backend_data.get("duration", "medium")
     companions_key = backend_data.get("companions", "solo")
     budget_key = backend_data.get("budget", "midrange")
     style_key = backend_data.get("travelStyle", "cultural")
     pace_key = backend_data.get("pace", "balanced")
+    activity_key = backend_data.get("activity", "medium")
+    crowds_key = backend_data.get("crowds", "mixed")
     
     duration_label = DURATION_MAP.get(duration_key, DURATION_MAP["medium"])["label"]
     companion_label = COMPANIONS_MAP.get(companions_key, "solo traveler")
     budget_label = BUDGET_MAP.get(budget_key, BUDGET_MAP["midrange"])["daily"]
     style_label = TRAVEL_STYLE_MAP.get(style_key, TRAVEL_STYLE_MAP["cultural"])["primary"]
+    activity_label = ACTIVITY_LEVEL_MAP.get(activity_key, "moderately active")
+    crowds_label = CROWDS_MAP.get(crowds_key, "mix of both")
     
     # Get duration in days
     duration_days = DURATION_MAP.get(duration_key, DURATION_MAP["medium"])["days"]
     
     query = (
-        f"I need a detailed day-by-day travel plan for [destination] from my [origin] country. "
-        f"Duration: {duration_label} ({duration_days} days). "
-        f"Traveler: {companion_label}, Style: {style_label}, Budget: {budget_label}/day, Pace: {pace_key}. "
-        f"Please create a complete detailed itinerary with transport, accommodation, and daily activities."
+        f"Recommend the best destinations in Vietnam for a {duration_label} ({duration_days} days) trip. "
+        f"Traveler: {companion_label}. Travel style: {style_label}. "
+        f"Budget: {budget_label}/day. Activity level: {activity_label}. "
+        f"Pace: {pace_key}. Crowds: {crowds_label}. "
+        f"Create a complete detailed day-by-day itinerary with specific destinations, "
+        f"hotels, restaurants, activities, transport, and timing for each event."
     )
     
     return query

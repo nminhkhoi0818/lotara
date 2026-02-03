@@ -210,40 +210,44 @@ def register_all_prompts():
     """
     Register all agent prompts with Opik.
     
-    This function is called automatically when the module is imported.
-    It registers all prompts defined in the prompt files.
+    This function should be called explicitly after all imports are complete
+    to avoid circular import issues.
     """
-    from src.travel_lotara.agents.prompt import ROOT_AGENT_INSTR, ROOT_AGENT_METADATA
-    from src.travel_lotara.agents.sub_agents.inspiration_agent.prompt import (
-        INSPIRATION_AGENT_INSTR,
-        INSPIRATION_AGENT_METADATA
-    )
-    from src.travel_lotara.agents.sub_agents.pre_agent.prompt import (
-        PRE_AGENT_INSTR,
-        PRE_AGENT_METADATA
-    )
-    from src.travel_lotara.agents.sub_agents.planning_agent.prompt import (
-        PLANNING_AGENT_INSTR,
-        PLANNING_AGENT_METADATA,
-        REFACTORING_OUTPUT_INSTR,
-        REFACTORING_OUTPUT_METADATA,
-        GOOGLE_SEARCH_INSTR,
-        GOOGLE_SEARCH_METADATA
-    )
-    
-    # Register all prompts
-    prompt_manager.register_prompt("root_agent", ROOT_AGENT_INSTR, ROOT_AGENT_METADATA)
-    prompt_manager.register_prompt("inspiration_agent", INSPIRATION_AGENT_INSTR, INSPIRATION_AGENT_METADATA)
-    prompt_manager.register_prompt("planning_agent", PLANNING_AGENT_INSTR, PLANNING_AGENT_METADATA)
-    prompt_manager.register_prompt("refactoring_output_agent", REFACTORING_OUTPUT_INSTR, REFACTORING_OUTPUT_METADATA)
-    prompt_manager.register_prompt("google_search_agent", GOOGLE_SEARCH_INSTR, GOOGLE_SEARCH_METADATA)
-    
-    logger.info(f"[Prompt Manager] Registered {len(prompt_manager.list_prompts())} prompts")
+    try:
+        from src.travel_lotara.agents.prompt import ROOT_AGENT_INSTR, ROOT_AGENT_METADATA
+        from src.travel_lotara.agents.sub_agents.inspiration_agent.prompt import (
+            INSPIRATION_AGENT_INSTR,
+            INSPIRATION_AGENT_METADATA
+        )
+        from src.travel_lotara.agents.sub_agents.pre_agent.prompt import (
+            PRE_AGENT_INSTR,
+            PRE_AGENT_METADATA
+        )
+        from src.travel_lotara.agents.sub_agents.planning_agent.prompt import (
+            PLANNING_AGENT_INSTR,
+            PLANNING_AGENT_METADATA,
+            REFACTORING_OUTPUT_INSTR,
+            REFACTORING_OUTPUT_METADATA,
+            GOOGLE_SEARCH_INSTR,
+            GOOGLE_SEARCH_METADATA
+        )
+        from src.travel_lotara.agents.sub_agents.formatter_agent.prompt import (
+            FORMATTER_AGENT_INSTR,
+            FORMATTER_AGENT_METADATA
+        )
+        
+        # Register all prompts
+        prompt_manager.register_prompt("root_agent", ROOT_AGENT_INSTR, ROOT_AGENT_METADATA)
+        prompt_manager.register_prompt("inspiration_agent", INSPIRATION_AGENT_INSTR, INSPIRATION_AGENT_METADATA)
+        prompt_manager.register_prompt("planning_agent", PLANNING_AGENT_INSTR, PLANNING_AGENT_METADATA)
+        prompt_manager.register_prompt("refactoring_output_agent", REFACTORING_OUTPUT_INSTR, REFACTORING_OUTPUT_METADATA)
+        prompt_manager.register_prompt("google_search_agent", GOOGLE_SEARCH_INSTR, GOOGLE_SEARCH_METADATA)
+        prompt_manager.register_prompt("formatter_agent", FORMATTER_AGENT_INSTR, FORMATTER_AGENT_METADATA)
+        
+        logger.info(f"[Prompt Manager] Registered {len(prompt_manager.list_prompts())} prompts")
+    except Exception as e:
+        logger.warning(f"[Prompt Manager] Could not register prompts: {e}")
 
 
-# Automatically register all prompts when module is imported
-try:
-    register_all_prompts()
-except Exception as e:
-    logger.warning(f"[Prompt Manager] Could not register prompts on import: {e}")
-    logger.info("[Prompt Manager] Prompts will be registered on first use")
+# DO NOT automatically register on import to avoid circular dependencies
+# Call register_all_prompts() explicitly after all modules are loaded

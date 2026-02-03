@@ -9,4 +9,7 @@ __all__ = [
     "user_profile_tool",
     "date_season_tool",
     "calendar_tool",
+    "chromadb_retrieval_tool",
+    "retrieve_locations_from_chromadb",
+    "get_locations",
 ]
