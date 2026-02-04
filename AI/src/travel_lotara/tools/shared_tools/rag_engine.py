@@ -17,11 +17,52 @@ import os
 import json
 import time
 import re
+import asyncio
+import hashlib
+import logging
+from functools import lru_cache
+from typing import Dict, List, Any, Optional, Tuple
+from collections import OrderedDict
 from google import genai
 from dotenv import load_dotenv
+from src.travel_lotara.config.logging_config import get_logger
 
 # Load environment variables from .env file (created by chroma db connect)
 load_dotenv()
+
+# Logger for this module
+logger = get_logger(__name__)
+
+# LRU Cache implementation for better performance
+class LRUCache:
+    """Thread-safe LRU cache with size limit."""
+    def __init__(self, max_size: int = 1000):
+        self.cache = OrderedDict()
+        self.max_size = max_size
+    
+    def get(self, key: str) -> Optional[Any]:
+        if key not in self.cache:
+            return None
+        # Move to end (most recently used)
+        self.cache.move_to_end(key)
+        return self.cache[key]
+    
+    def put(self, key: str, value: Any) -> None:
+        if key in self.cache:
+            self.cache.move_to_end(key)
+        self.cache[key] = value
+        if len(self.cache) > self.max_size:
+            self.cache.popitem(last=False)  # Remove oldest
+    
+    def clear(self) -> None:
+        self.cache.clear()
+    
+    def __len__(self) -> int:
+        return len(self.cache)
+
+# Global LRU caches for embeddings and queries
+_embedding_cache = LRUCache(max_size=1000)
+_query_cache = LRUCache(max_size=500)
 
 
 def load_api_key():
@@ -47,63 +88,151 @@ def load_api_key():
     return api_key
 
 
-# GenAI client for embeddings
-genai_client = genai.Client(api_key=load_api_key())
+# GenAI client for embeddings (lazy initialization)
+_genai_client: Optional[genai.Client] = None
+
+def get_genai_client() -> genai.Client:
+    """Get or create GenAI client (singleton pattern)."""
+    global _genai_client
+    if _genai_client is None:
+        _genai_client = genai.Client(api_key=load_api_key())
+    return _genai_client
 
 # -----------------------------
-# Initialize ChromaDB Client
+# Initialize ChromaDB Client (Lazy + Singleton)
 # -----------------------------
-# Try Cloud first, fallback to local PersistentClient
-USE_CLOUD = True  # Cloud is now configured!
+_chroma_client: Optional[chromadb.ClientAPI] = None
+_collection = None
+USE_CLOUD = True
 
-if USE_CLOUD:
-    try:
-        chroma_api_key = os.getenv("CHROMA_API_KEY")
-        chroma_tenant = os.getenv("CHROMA_TENANT")
-        chroma_database = os.getenv("CHROMA_DATABASE")
-        
-        if chroma_api_key and chroma_tenant and chroma_database:
-            print(f"Connecting to Chroma Cloud...")
-            print(f"  Tenant: {chroma_tenant}")
-            print(f"  Database: {chroma_database}")
+def get_chroma_client() -> chromadb.ClientAPI:
+    """Get or create ChromaDB client (singleton pattern with lazy initialization)."""
+    global _chroma_client, USE_CLOUD
+    
+    if _chroma_client is not None:
+        return _chroma_client
+    
+    # Try Cloud first, fallback to local PersistentClient
+    if USE_CLOUD:
+        try:
+            chroma_api_key = os.getenv("CHROMA_API_KEY")
+            chroma_tenant = os.getenv("CHROMA_TENANT")
+            chroma_database = os.getenv("CHROMA_DATABASE")
             
-            chroma_client = chromadb.CloudClient(
-                tenant=chroma_tenant,
-                database=chroma_database,
-                api_key=chroma_api_key
+            if chroma_api_key and chroma_tenant and chroma_database:
+                logger.info(f"Connecting to Chroma Cloud - Tenant: {chroma_tenant}, Database: {chroma_database}")
+                
+                _chroma_client = chromadb.CloudClient(
+                    tenant=chroma_tenant,
+                    database=chroma_database,
+                    api_key=chroma_api_key
+                )
+                logger.info("Connected to Chroma Cloud successfully")
+                return _chroma_client
+            else:
+                raise ValueError("Missing CHROMA_API_KEY, CHROMA_TENANT, or CHROMA_DATABASE")
+
+        except Exception as e:
+            logger.error(f"Failed to connect to Chroma Cloud: {e}")
+            USE_CLOUD = False
+    
+    if not USE_CLOUD:
+        # Use local PersistentClient (works without any cloud setup)
+        persist_dir = os.path.join(os.path.dirname(__file__), "chroma_cloud_data")
+        _chroma_client = chromadb.PersistentClient(path=persist_dir)
+        logger.info(f"Using local ChromaDB storage at: {persist_dir}")
+    
+    return _chroma_client
+
+def get_collection():
+    """Get or create collection with optimized HNSW index parameters."""
+    global _collection
+    if _collection is None:
+        client = get_chroma_client()
+        
+        # Optimized HNSW index parameters for fast retrieval
+        # M: Number of bi-directional links (16-64, higher = better recall)
+        # ef_construction: Size of dynamic candidate list (100-200, higher = better index)
+        # ef_search: Size of dynamic candidate list for search (10-500, higher = better recall)
+        metadata = {
+            "hnsw:space": "cosine",  # Use cosine similarity
+            "hnsw:M": 32,  # Balanced recall/speed
+            "hnsw:construction_ef": 128,  # Good index quality
+            "hnsw:search_ef": 64,  # Fast search with good recall
+        }
+        
+        try:
+            _collection = client.get_or_create_collection(
+                name="Lotara",
+                metadata=metadata
             )
-            print("Connected to Chroma Cloud successfully!\n")
-        else:
-            raise ValueError("Missing CHROMA_API_KEY, CHROMA_TENANT, or CHROMA_DATABASE in .env file")
-
-    except Exception as e:
-        print(f"Failed to connect to Chroma Cloud: {e}")
-        print("\nTo use Chroma Cloud, run these commands first:")
-        print("  1. chroma login")
-        print("  2. chroma db create lotara-tourism")
-        print("  3. chroma db connect lotara-tourism --env-file")
-        print("\nFalling back to local storage...\n")
-        USE_CLOUD = False
-
-if not USE_CLOUD:
-    # Use local PersistentClient (works without any cloud setup)
-    persist_dir = os.path.join(os.path.dirname(__file__), "chroma_cloud_data")
-    chroma_client = chromadb.PersistentClient(path=persist_dir)
-    print(f"Using local ChromaDB storage at: {persist_dir}\n")
-
-# Create or get collection
-collection = chroma_client.get_or_create_collection(name="Lotara")
-print(f"Collection 'Lotara' ready. Current count: {collection.count()}")
+            logger.info(f"Collection 'Lotara' ready with HNSW optimization. Count: {_collection.count()}")
+        except Exception as e:
+            # Fallback without metadata if cloud doesn't support it
+            logger.warning(f"Could not set HNSW params: {e}")
+            _collection = client.get_or_create_collection(name="Lotara")
+            logger.info(f"Collection 'Lotara' ready (default config). Count: {_collection.count()}")
+    
+    return _collection
 
 
 # -----------------------------
-# Embedding function for queries only
+# Embedding function with caching and async support
 # -----------------------------
-def get_embedding(text, model="text-embedding-004"):
-    """Generate embedding for query text (not for uploading data)"""
-    result = genai_client.models.embed_content(model=model, contents=[text])
+def get_embedding(text: str, model: str = "text-embedding-004") -> List[float]:
+    """Generate embedding for query text with LRU caching."""
+    # Create hash-based cache key for better collision handling
+    cache_key = hashlib.md5(f"{text}_{model}".encode('utf-8')).hexdigest()
+    
+    # Check cache first
+    cached = _embedding_cache.get(cache_key)
+    if cached is not None:
+        return cached
+    
+    # Generate embedding
+    client = get_genai_client()
+    result = client.models.embed_content(model=model, contents=[text])
     vec = result.embeddings[0].values
+    
+    # Cache the result with LRU eviction
+    _embedding_cache.put(cache_key, vec)
+    
     return vec
+
+def get_embeddings_batch(texts: List[str], model: str = "text-embedding-004") -> List[List[float]]:
+    """Generate embeddings for multiple texts in batch (more efficient)."""
+    # Filter cached vs uncached
+    results = [None] * len(texts)
+    uncached_indices = []
+    uncached_texts = []
+    
+    for idx, text in enumerate(texts):
+        cache_key = hashlib.md5(f"{text}_{model}".encode('utf-8')).hexdigest()
+        cached = _embedding_cache.get(cache_key)
+        if cached is not None:
+            results[idx] = cached
+        else:
+            uncached_indices.append(idx)
+            uncached_texts.append(text)
+    
+    # Batch generate uncached embeddings
+    if uncached_texts:
+        client = get_genai_client()
+        batch_result = client.models.embed_content(model=model, contents=uncached_texts)
+        
+        for idx, embedding in zip(uncached_indices, batch_result.embeddings):
+            vec = embedding.values
+            results[idx] = vec
+            # Cache it
+            cache_key = hashlib.md5(f"{texts[idx]}_{model}".encode('utf-8')).hexdigest()
+            _embedding_cache.put(cache_key, vec)
+    
+    return results
+
+async def get_embedding_async(text: str, model: str = "text-embedding-004") -> List[float]:
+    """Async version of get_embedding (runs in thread pool to avoid blocking)."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, get_embedding, text, model)
 
 
 # --------------------------------------------------
@@ -205,17 +334,34 @@ def parse_document_text(text: str) -> dict:
 
 
 # --------------------------------------------------
-# Retrieval using ChromaDB Cloud
+# Retrieval using ChromaDB Cloud with caching
 # --------------------------------------------------
-def retrieve_top_k(query, k=10):
-    """Retrieve top k locations from ChromaDB Cloud based on query"""
-    query_embedding = get_embedding(query)
+def retrieve_top_k(query: str, k: int = 10, where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Retrieve top k locations from ChromaDB Cloud with optimized caching and filtering."""
+    # Create hash-based cache key
+    where_str = json.dumps(where, sort_keys=True) if where else ""
+    cache_key = hashlib.md5(f"{query}_{k}_{where_str}".encode('utf-8')).hexdigest()
     
-    results = collection.query(
-        query_embeddings=[query_embedding],
-        n_results=k,
-        include=["documents", "metadatas", "distances"]
-    )
+    # Check query cache first
+    cached = _query_cache.get(cache_key)
+    if cached is not None:
+        return cached
+    
+    query_embedding = get_embedding(query)
+    coll = get_collection()
+    
+    # Optimize query parameters
+    query_params = {
+        "query_embeddings": [query_embedding],
+        "n_results": k,
+        "include": ["documents", "metadatas", "distances"]  # Only request needed fields
+    }
+    
+    # Add where filter if provided (narrows search space)
+    if where:
+        query_params["where"] = where
+    
+    results = coll.query(**query_params)
     
     # Extract data from METADATA (not documents - documents are plain text descriptions)
     retrieved_locations = []
@@ -250,7 +396,66 @@ def retrieve_top_k(query, k=10):
                 }
                 retrieved_locations.append(location_data)
     
+    # Cache the results with LRU eviction
+    _query_cache.put(cache_key, retrieved_locations)
+    
     return retrieved_locations
+
+def retrieve_top_k_batch(queries: List[str], k: int = 10) -> List[List[Dict[str, Any]]]:
+    """Retrieve locations for multiple queries in batch (parallel processing)."""
+    # Generate embeddings in batch
+    embeddings = get_embeddings_batch(queries)
+    coll = get_collection()
+    
+    # Query in batch (more efficient than individual queries)
+    results = coll.query(
+        query_embeddings=embeddings,
+        n_results=k,
+        include=["documents", "metadatas", "distances"]
+    )
+    
+    # Process results for each query
+    all_results = []
+    for query_idx in range(len(queries)):
+        retrieved_locations = []
+        
+        if results and results.get("metadatas") and query_idx < len(results["metadatas"]):
+            metadatas = results["metadatas"][query_idx]
+            documents = results["documents"][query_idx]
+            
+            for idx, metadata in enumerate(metadatas):
+                if metadata:
+                    document_text = documents[idx] if idx < len(documents) else ""
+                    parsed_data = parse_document_text(document_text)
+                    clean_description = extract_description(document_text)
+                    
+                    location_data = {
+                        "Index": metadata.get("index", idx + 1),
+                        "Location name": metadata.get("location_name", ""),
+                        "Location": metadata.get("province", ""),
+                        "Description": clean_description if clean_description else document_text,
+                        "Rating": metadata.get("rating", 0),
+                        "Image": metadata.get("image", ""),
+                        "Keywords": metadata.get("keywords", ""),
+                        "Destinations": parsed_data["Destinations"],
+                        "Hotels": parsed_data["Hotels"],
+                        "Activities": parsed_data["Activities"]
+                    }
+                    retrieved_locations.append(location_data)
+        
+        all_results.append(retrieved_locations)
+    
+    return all_results
+
+async def retrieve_top_k_async(query: str, k: int = 10, where: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Async version of retrieve_top_k (runs in thread pool to avoid blocking)."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, retrieve_top_k, query, k, where)
+
+async def retrieve_top_k_batch_async(queries: List[str], k: int = 10) -> List[List[Dict[str, Any]]]:
+    """Async version of retrieve_top_k_batch."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, retrieve_top_k_batch, queries, k)
 
 
 # --------------------------------------------------
@@ -286,9 +491,10 @@ def extract_json(text: str):
 
 
 # --------------------------------------------------
-# Generation (STRICT JSON SELECTOR)
+# Generation (STRICT JSON SELECTOR) with async support
 # --------------------------------------------------
-def recommend_locations(user_query, top_k=5):
+def recommend_locations(user_query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    """Synchronous version of recommend_locations."""
     retrieved = retrieve_top_k(user_query, k=10)
 
     # IMPORTANT: pass RAW JSON, not flattened text
@@ -335,7 +541,8 @@ Output format:
 Return ONLY JSON.
 """
 
-    response = genai_client.models.generate_content(
+    client = get_genai_client()
+    response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt,
     )
@@ -345,42 +552,101 @@ Return ONLY JSON.
     try:
         return extract_json(raw_text)
     except Exception as e:
-        print("\n----- RAW LLM OUTPUT (DEBUG) -----")
-        print(raw_text)
-        print("---------------------------------\n")
+        logger.debug(f"RAW LLM OUTPUT:\\n{raw_text}")
         raise e
+
+async def recommend_locations_async(user_query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+    """Async version of recommend_locations (runs in thread pool to avoid blocking)."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, recommend_locations, user_query, top_k)
 
 
 # --------------------------------------------------
 # Public API for external use
 # --------------------------------------------------
-def initialize_chromadb():
+def initialize_chromadb(warmup: bool = True):
     """
-    Verify ChromaDB cloud connection (data already uploaded).
-    Call this once before using retrieve_top_k or recommend_locations.
+    Initialize ChromaDB with optional warmup query for faster first retrieval.
+    Call this once at startup before using retrieve_top_k or recommend_locations.
+    
+    Args:
+        warmup: If True, performs a dummy query to warm up the connection
     
     Returns:
         tuple: (collection, total_count)
     """
-    count = collection.count()
-    print(f"ChromaDB Cloud ready: {count} locations available")
-    return collection, count
+    coll = get_collection()
+    count = coll.count()
+    
+    # Warmup query to pre-load connection and cache
+    if warmup and count > 0:
+        try:
+            logger.debug("Warming up ChromaDB connection...")
+            dummy_embedding = get_embedding("Vietnam tourism")
+            coll.query(
+                query_embeddings=[dummy_embedding],
+                n_results=1,
+                include=["metadatas"]
+            )
+            logger.debug("ChromaDB connection warmed up")
+        except Exception as e:
+            logger.debug(f"Warmup failed (non-critical): {e}")
+    
+    logger.info(f"ChromaDB ready: {count} locations available")
+    return coll, count
+
+async def initialize_chromadb_async():
+    """Async version of initialize_chromadb."""
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, initialize_chromadb)
 
 
-def get_collection_info():
+def get_collection_info() -> Dict[str, Any]:
     """
     Get information about the ChromaDB collection.
     
     Returns:
         dict: Collection metadata including count, name, and cloud status
     """
+    coll = get_collection()
     return {
-        "name": collection.name,
-        "count": collection.count(),
+        "name": coll.name,
+        "count": coll.count(),
         "using_cloud": USE_CLOUD,
         "tenant": os.getenv("CHROMA_TENANT") if USE_CLOUD else None,
         "database": os.getenv("CHROMA_DATABASE") if USE_CLOUD else None,
+        "cache_stats": {
+            "embedding_cache_size": len(_embedding_cache),
+            "query_cache_size": len(_query_cache),
+        }
     }
+
+def clear_cache():
+    """Clear all caches (useful for testing or memory management)."""
+    global _embedding_cache, _query_cache
+    _embedding_cache.clear()
+    _query_cache.clear()
+    logger.debug("All ChromaDB caches cleared")
+
+def warmup_cache(common_queries: List[str] = None, k: int = 5):
+    """Pre-populate cache with common queries for faster response."""
+    if common_queries is None:
+        common_queries = [
+            "beach destinations in Vietnam",
+            "cultural sites in Hanoi",
+            "family-friendly activities",
+            "mountain trekking locations",
+            "historical landmarks"
+        ]
+    
+    logger.info(f"Warming up cache with {len(common_queries)} common queries...")
+    for query in common_queries:
+        try:
+            retrieve_top_k(query, k=k)
+        except Exception as e:
+            logger.debug(f"Warmup query failed: {query[:30]}... - {e}")
+    
+    logger.info(f"Cache warmup complete. Query cache size: {len(_query_cache)}")
 
 
 # --------------------------------------------------
@@ -388,19 +654,20 @@ def get_collection_info():
 # --------------------------------------------------
 if __name__ == "__main__":
     # Test retrieval from ChromaDB Cloud (data already uploaded)
-    print(f"Connected to ChromaDB Cloud with {collection.count()} locations\n")
+    coll = get_collection()
+    logger.info(f"Connected to ChromaDB Cloud with {coll.count()} locations")
     
     user_input = "Give me some place near the Hoan Kiem lake"
 
-    print(f"\nAnalyzing your request: '{user_input}'...\n")
+    logger.info(f"Analyzing request: '{user_input}'...")
 
     try:
         results = recommend_locations(user_input, top_k=5)
 
-        print("=" * 50)
-        print("LOTARA RECOMMENDATIONS (FROM CHROMA CLOUD)")
-        print("=" * 50)
-        print(json.dumps(results, indent=2, ensure_ascii=False))
+        logger.info("=" * 50)
+        logger.info("LOTARA RECOMMENDATIONS (FROM CHROMA CLOUD)")
+        logger.info("=" * 50)
+        logger.info(json.dumps(results, indent=2, ensure_ascii=False))
 
     except Exception as e:
-        print(f"ERROR: {e}")
+        logger.error(f"Recommendation error: {e}")

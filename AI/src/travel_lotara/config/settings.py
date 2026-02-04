@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pydantic import BaseModel, Field
+from google.genai import types  # Import for generation configs
 
 # Load environment variables from .env file
 try:
@@ -44,6 +45,7 @@ class Settings(BaseModel):
     
     # Environment
     environment: str = Field(default="development")
+    version: str = Field(default="0.1.0")
     
     @property
     def is_supabase_configured(self) -> bool:
@@ -81,6 +83,7 @@ def load_settings() -> Settings:
         
         # Environment
         environment=os.getenv("ENVIRONMENT", "development"),
+        version=os.getenv("VERSION", "0.1.0")
     )
 
 
@@ -89,11 +92,66 @@ _settings: Settings | None = None
 
 
 def get_settings() -> Settings:
-    """Get cached settings instance."""
+    """Get cached settings instance (singleton pattern for performance)."""
     global _settings
-    # Force reload for debugging - TODO: Remove this after testing
-    _settings = None
     if _settings is None:
         _settings = load_settings()
     return _settings
 
+def reload_settings() -> Settings:
+    """Force reload settings from environment (use only when needed)."""
+    global _settings
+    _settings = None
+    return get_settings()
+
+
+# -----------------------------------------------------------------------------
+# OPTIMIZED GENERATION CONFIGS FOR PERFORMANCE
+# -----------------------------------------------------------------------------
+
+# Fast generation config for intermediate agents (inspiration, planning)
+# Higher temperature and limits for faster generation
+FAST_GENERATION_CONFIG = types.GenerateContentConfig(
+    temperature=1.0,              # Higher temp = faster, more creative
+    top_p=0.95,                   # Nucleus sampling for speed
+    top_k=40,                     # Limit candidates for speed
+    candidate_count=1,            # Only generate 1 response
+    max_output_tokens=8000,       # Prevent runaway generation
+    stop_sequences=[],            # No custom stop sequences
+    response_modalities=["TEXT"], # Explicit text-only
+)
+
+# JSON generation config for agents WITHOUT tools (e.g., pure formatter)
+# Lower temperature for structured, consistent output
+JSON_GENERATION_CONFIG = types.GenerateContentConfig(
+    temperature=0.3,              # Lower temp for structured output
+    top_p=0.8,                    # More focused sampling
+    top_k=20,                     # Limit options for consistency
+    candidate_count=1,            # Single response
+    max_output_tokens=16000,      # Large enough for full itinerary JSON
+    response_mime_type="application/json",  # Force JSON format (incompatible with tools)
+)
+
+# JSON generation config for agents WITH tools
+# Cannot use response_mime_type='application/json' with function calling
+# Relies on output_schema instead for JSON formatting
+TOOL_COMPATIBLE_JSON_CONFIG = types.GenerateContentConfig(
+    temperature=0.3,              # Lower temp for structured output
+    top_p=0.8,                    # More focused sampling
+    top_k=20,                     # Limit options for consistency
+    candidate_count=1,            # Single response
+    max_output_tokens=16000,      # Large enough for full itinerary JSON
+    # NO response_mime_type - let output_schema handle JSON formatting
+)
+
+# Optimized retry config - faster retries for production
+# Reduced delays for better UX while still handling transient errors
+# Note: HttpRetryOptions only accepts initial_delay and max_delay
+FAST_HTTP_RETRY_OPTIONS = types.HttpRetryOptions(
+    initial_delay=10.0,          # 10s instead of 60s
+    max_delay=30.0,              # Cap at 30s instead of unlimited
+)
+
+FAST_HTTP_OPTIONS = types.HttpOptions(
+    retry_options=FAST_HTTP_RETRY_OPTIONS
+)

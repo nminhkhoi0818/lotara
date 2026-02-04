@@ -21,11 +21,11 @@ from google.adk.tools.agent_tool import AgentTool
 
 from src.travel_lotara.tools import (
     memorize,
-    chromadb_retrieval_tool,
+    milvus_retrieval_tool,
 )
-
 from .prompt import *
-from src.travel_lotara.config.settings import get_settings
+from src.travel_lotara.config.settings import get_settings, FAST_GENERATION_CONFIG
+from src.travel_lotara.config.logging_config import get_logger
 from src.travel_lotara.agents.shared_libraries import (
     TransportPlan,
     AccomodationPlan,
@@ -37,8 +37,9 @@ from src.travel_lotara.agents.tracing_config import setup_agent_tracing
 
 # GLOBAL SETTINGS
 settings = get_settings()
+logger = get_logger(__name__)
 MODEL_ID = settings.model
-print(f"[DEBUG] Planning Agent using model: {MODEL_ID}")
+logger.debug(f"Planning Agent using model: {MODEL_ID}")
 
 
 
@@ -126,7 +127,8 @@ Return the complete tool response containing location data with Images, Ratings,
         description="Retrieve relevant local attractions and points of interest based on user preferences and itinerary context.",
         instruction=instruction,
         output_key="rag_attractions",
-        tools=[chromadb_retrieval_tool],
+        tools=[milvus_retrieval_tool],
+        generate_content_config=FAST_GENERATION_CONFIG,  # Optimized for speed
     )
     agent = BaseAgent(config=config).create_agent()
     setup_agent_tracing(agent, environment=settings.project_environment)
@@ -152,7 +154,8 @@ Return the response containing hotel data."""
         description="Retrieve relevant hotel options based on user preferences and itinerary context.",
         instruction=instruction,
         output_key="rag_hotels",
-        tools=[chromadb_retrieval_tool],
+        tools=[milvus_retrieval_tool],
+        generate_content_config=FAST_GENERATION_CONFIG,  # Optimized for speed
     )
     agent = BaseAgent(config=config).create_agent()
     setup_agent_tracing(agent, environment=settings.project_environment)
@@ -178,7 +181,8 @@ Return the response containing activity data."""
         description="Retrieve relevant local activities and experiences based on user preferences and itinerary context.",
         instruction=instruction,
         output_key="rag_activities",
-        tools=[chromadb_retrieval_tool],
+        tools=[milvus_retrieval_tool],
+        generate_content_config=FAST_GENERATION_CONFIG,  # Optimized for speed
     )
     agent = BaseAgent(config=config).create_agent()
     setup_agent_tracing(agent, environment=settings.project_environment)
@@ -200,11 +204,12 @@ planning_agent_config = AgentConfig(
     name="planning_agent",
     description="Create and manage travel itineraries based on user preferences and constraints.",
     instruction=PLANNING_AGENT_INSTR,
+    generate_content_config=FAST_GENERATION_CONFIG,  # Optimized for speed
     # output_schema removed - formatter_agent handles final JSON output
     tools=[
         # AgentTool(agent=google_search_agent),
         FunctionTool(func=memorize),  # memorize is a function, must wrap in FunctionTool
-        chromadb_retrieval_tool,  # Add ChromaDB retrieval tool
+        milvus_retrieval_tool,  # Add Milvus retrieval tool
     ],
     output_key="itinerary",
 )

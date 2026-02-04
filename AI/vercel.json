@@ -9,13 +9,15 @@
   "env": {
     "LOTARA_MODEL": "gemini-2.5-flash",
     "OPIK_PROJECT": "Lotara",
-    "PYTHONPATH": "services/backend:src"
+    "PYTHONPATH": "services/backend:src",
+    "MAX_CONCURRENT_REQUESTS": "2"
   },
   "regions": ["iad1"],
   "functions": {
     "api/index.py": {
-      "memory": 2048,
-      "maxDuration": 10
+      "memory": 3008,
+      "maxDuration": 300
     }
-  }
+  },
+  "crons": []
 }

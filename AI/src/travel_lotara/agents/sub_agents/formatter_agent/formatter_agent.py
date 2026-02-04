@@ -20,7 +20,8 @@ from google.adk.tools.agent_tool import AgentTool
 from google.adk.tools import FunctionTool
 
 from .prompt import *
-from src.travel_lotara.config.settings import get_settings
+from src.travel_lotara.config.settings import get_settings, JSON_GENERATION_CONFIG
+from src.travel_lotara.config.logging_config import get_logger
 from src.travel_lotara.agents.shared_libraries import Itinerary
 
 from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
@@ -28,8 +29,9 @@ from src.travel_lotara.agents.tracing_config import setup_agent_tracing
 
 # GLOBAL SETTINGS
 settings = get_settings()
+logger = get_logger(__name__)
 MODEL_ID = settings.model
-print(f"[DEBUG] Formatter Agent using model: {MODEL_ID}")
+logger.debug(f"Formatter Agent using model: {MODEL_ID}")
 
 
 ## Formatter Agent
@@ -39,6 +41,7 @@ formatter_agent_config = AgentConfig(
     description="Format and structure the generated travel inspiration into a user-friendly output.",
     instruction=FORMATTER_AGENT_INSTR,
     output_schema=Itinerary,  # Enforce JSON output in final schema
+    generate_content_config=JSON_GENERATION_CONFIG,  # Optimized for JSON output
     output_key="formatter_output"
 )
 

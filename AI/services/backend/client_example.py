@@ -11,7 +11,7 @@ class LotaraClient:
     def __init__(self, base_url: str = "http://localhost:8000"):
         """Initialize client with base URL."""
         self.base_url = base_url
-        self.timeout = 180  # 3 minutes
+        self.timeout = 300  # 5 minutes (increased for production)
     
     def health_check(self) -> Dict[str, Any]:
         """Check API health status."""

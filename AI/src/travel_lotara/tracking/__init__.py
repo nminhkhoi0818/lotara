@@ -34,6 +34,16 @@ from .opik_tracer import (
     trace_tool,
     trace_async_tool,
 )
+from .progress_tracker import (
+    ProgressTracker,
+    ProgressEventType,
+    ProgressEvent,
+    track_agent_start,
+    track_tool_call,
+    track_tool_result,
+    track_model_call,
+    track_thinking,
+)
 
 __all__ = [
     "OpikTracer",
@@ -41,4 +51,12 @@ __all__ = [
     "flush_traces",
     "trace_tool",
     "trace_async_tool",
+    "ProgressTracker",
+    "ProgressEventType",
+    "ProgressEvent",
+    "track_agent_start",
+    "track_tool_call",
+    "track_tool_result",
+    "track_model_call",
+    "track_thinking",
 ]

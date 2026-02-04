@@ -12,6 +12,7 @@ from .planning_agent import (
     create_activities_retrieval_agent,
 )
 from .formatter_agent import formatter_agent
+from .planning_formatter_agent import planning_formatter_agent  # NEW merged agent
 
 __all__ = [
     "pre_agent", 
@@ -21,6 +22,7 @@ __all__ = [
     "attraction_retrieval_agent",
     "hotel_retrieval_agent",
     "formatter_agent",
+    "planning_formatter_agent",  # NEW merged agent
     "create_attraction_retrieval_agent",
     "create_hotel_retrieval_agent",
     "create_activities_retrieval_agent",

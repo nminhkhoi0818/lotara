@@ -1,6 +1,7 @@
 """Rate limiting and request queue management."""
 
 import asyncio
+from os import getenv
 import time
 from collections import deque
 from datetime import datetime, timedelta
@@ -75,9 +76,13 @@ class RequestQueue:
         }
 
 
+# Get max_concurrent and requests_per_minute from environment variables
+max_concurrent = int(getenv("MAX_CONCURRENT_REQUESTS", 2))
+requests_per_minute = int(getenv("REQUESTS_PER_MINUTE", 5))
+
 # Global request queue instance
 # Adjust these values based on your API quota
 request_queue = RequestQueue(
-    max_concurrent=2,  # Only 2 concurrent itinerary generations
-    requests_per_minute=3  # Conservative limit to avoid 429
+    max_concurrent=max_concurrent,  # Only 2 concurrent itinerary generations
+    requests_per_minute=requests_per_minute  # Conservative limit to avoid 429
 )

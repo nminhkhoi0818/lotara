@@ -56,7 +56,7 @@ Each location has:
 - "Rating": 4.8
 - "Image": URL string
 - "Keywords": relevant keywords
-- "Destinations": array of {place: {name, budget, time, average_timespan}, cuisine: {name, budget, average_timespan}}
+- "Destinations": array of {place: {name, time, average_timespan}, cuisine: {name, average_timespan}}
 - "Hotels": array of {name, cost, reviews}
 - "Activities": array of strings
 
@@ -78,7 +78,7 @@ CRITICAL - How to extract RAG data:
    - "Rating": Use for average_ratings
    - "Image": **REQUIRED** - Use for image_url in EVERY event
    - "Keywords": Use for event keywords array
-   - "Destinations": Array of {place: {name, budget, time, average_timespan}, cuisine: {name, budget, average_timespan}}
+   - "Destinations": Array of {place: {name, time, average_timespan}, cuisine: {name, average_timespan}}
    - "Hotels": Array of {name, cost, reviews}
    - "Activities": Array of activity strings
 
@@ -88,9 +88,9 @@ STRICT RULES:
 - EVERY event MUST have image_url from RAG "Image" field
 - Extract location details from RAG "Location name" and "Description"
 - Extract hotels from RAG "Hotels" array with cost and reviews
-- Extract activities from RAG "Destinations" array with budgets and timespans
+- Extract activities from RAG "Destinations" array with timespans
 - All times must include UTC+7 (Vietnam timezone)
-- Budget format: "$XX USD" or range "$XX-YY USD" from RAG data
+- Budget format: "$XX USD" or range "$XX-YY USD" from internet researching 
 
 Event types:
 - visit: for attractions (use RAG "Destinations" → "place")
@@ -118,7 +118,7 @@ For EACH day, provide:
       "province": "from RAG 'Location'",
       "start_time": "HH:MM UTC+7",
       "end_time": "HH:MM UTC+7",
-      "budget": "from RAG Destinations.place.budget or Hotels.cost",
+      "budget": "estimated budget depending on internet researching",
       "keywords": ["from RAG Keywords"],
       "average_timespan": "from RAG Destinations.place.average_timespan",
       "image_url": "from RAG 'Image' - REQUIRED",

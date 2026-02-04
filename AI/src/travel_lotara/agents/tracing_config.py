@@ -9,7 +9,9 @@ from typing import Dict, Any, List, Optional
 from src.travel_lotara.tracking import get_tracer
 # Lazy import prompt_manager to avoid circular import
 # from src.travel_lotara.agents.prompt_manager import prompt_manager
+from src.travel_lotara.config.settings import get_settings
 
+VERSION = get_settings().version
 # Agent metadata configurations
 AGENT_METADATA_CONFIG = {
     "root_agent": {
@@ -18,7 +20,7 @@ AGENT_METADATA_CONFIG = {
             "agent_type": "sequential",
             "role": "orchestrator",
             "sub_agents": ["inspiration", "planning", "refactoring"],
-            "version": "1.0"
+            "version": VERSION
         }
     },
     "inspiration_agent": {
@@ -28,7 +30,7 @@ AGENT_METADATA_CONFIG = {
             "role": "inspiration",
             "team": "discovery",
             "purpose": "Generate travel inspiration based on user preferences",
-            "version": "1.0"
+            "version": VERSION
         }
     },
     "planning_agent": {
@@ -38,7 +40,7 @@ AGENT_METADATA_CONFIG = {
             "role": "planning",
             "team": "itinerary",
             "purpose": "Create detailed travel itineraries",
-            "version": "1.0"
+            "version": VERSION
         }
     },
     "refactoring_output_agent": {
@@ -48,7 +50,7 @@ AGENT_METADATA_CONFIG = {
             "role": "output_formatter",
             "team": "output",
             "purpose": "Refactor and structure itinerary output",
-            "version": "1.0"
+            "version": VERSION
         }
     },
     "google_search_agent": {
@@ -58,7 +60,7 @@ AGENT_METADATA_CONFIG = {
             "role": "search",
             "team": "research",
             "purpose": "Perform Google searches for itinerary planning",
-            "version": "1.0"
+            "version": VERSION
         }
     },
     "formatter_agent": {
@@ -68,50 +70,50 @@ AGENT_METADATA_CONFIG = {
             "role": "output_formatter",
             "team": "output",
             "purpose": "Format and structure the generated travel inspiration into a user-friendly output",
-            "version": "1.0"
+            "version": VERSION
         }
     },
     "rag_retrieval_parallel_agent": {
-        "tags": ["parallel", "retrieval", "chromadb", "rag"],
+        "tags": ["parallel", "retrieval", "milvus", "rag"],
         "metadata": {
             "agent_type": "parallel",
             "role": "data_retrieval",
             "team": "planning",
-            "purpose": "Parallel retrieval of attractions, hotels, and activities from ChromaDB",
-            "version": "1.0",
+            "purpose": "Parallel retrieval of attractions, hotels, and activities from Milvus",
+            "version": VERSION,
             "retrieval_agents": ["attraction_retrieval", "hotel_retrieval", "activities_retrieval"]
         }
     },
     "attraction_retrieval_agent": {
-        "tags": ["retrieval", "attractions", "chromadb", "rag"],
+        "tags": ["retrieval", "attractions", "milvus", "rag"],
         "metadata": {
             "agent_type": "retrieval",
             "role": "attraction_retrieval",
             "team": "planning",
-            "purpose": "Retrieve tourism attractions from ChromaDB",
-            "version": "1.0",
+            "purpose": "Retrieve tourism attractions from Milvus",
+            "version": VERSION,
             "parent_agent": "rag_retrieval_parallel_agent"
         }
     },
     "hotel_retrieval_agent": {
-        "tags": ["retrieval", "hotels", "chromadb", "rag"],
+        "tags": ["retrieval", "hotels", "milvus", "rag"],
         "metadata": {
             "agent_type": "retrieval",
             "role": "hotel_retrieval",
             "team": "planning",
-            "purpose": "Retrieve hotel options from ChromaDB",
-            "version": "1.0",
+            "purpose": "Retrieve hotel options from Milvus",
+            "version": VERSION,
             "parent_agent": "rag_retrieval_parallel_agent"
         }
     },
     "activities_retrieval_agent": {
-        "tags": ["retrieval", "activities", "chromadb", "rag"],
+        "tags": ["retrieval", "activities", "milvus", "rag"],
         "metadata": {
             "agent_type": "retrieval",
             "role": "activities_retrieval",
             "team": "planning",
-            "purpose": "Retrieve activities and experiences from ChromaDB",
-            "version": "1.0",
+            "purpose": "Retrieve activities and experiences from Milvus",
+            "version": VERSION,
             "parent_agent": "rag_retrieval_parallel_agent"
         }
     }
@@ -139,7 +141,7 @@ def get_agent_tracing_config(agent_name: str) -> Dict[str, Any]:
             "metadata": {
                 "agent_type": "custom",
                 "role": "unknown",
-                "version": "1.0"
+                "version": VERSION
             }
         }
     )

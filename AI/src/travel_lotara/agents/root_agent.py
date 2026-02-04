@@ -20,13 +20,10 @@ from google.adk.agents import SequentialAgent, ParallelAgent
 from google.genai import types
 from openinference.instrumentation import using_session
 
-from travel_lotara.agents.sub_agents import formatter_agent
-
 from .prompt import *
 from src.travel_lotara.agents.sub_agents import (
     inspiration_agent,
-    planning_agent,
-    formatter_agent,
+    planning_formatter_agent,  # NEW merged agent (replaces planning + formatter)
     # Import factory functions instead of singleton agents
     create_attraction_retrieval_agent,
     create_hotel_retrieval_agent,
@@ -85,15 +82,18 @@ def get_root_agent():
     
     with using_session(session_id=uuid.uuid4()):
         # SequentialAgent requires name and sub_agents
-        # Flow: inspiration_agent → RAG retrieval (parallel) → planning_agent → formatter_agent
-        # Create new instances of retrieval agents to avoid "already has parent" error
+        # OPTIMIZED Flow (3 steps instead of 4):
+        #   1. inspiration_agent → recommends regions
+        #   2. parallel RAG retrieval → gets locations, hotels, activities  
+        #   3. planning_formatter_agent → creates AND formats itinerary as JSON (MERGED)
+        # 
+        # SAVINGS: 15-25s by combining planning + formatting into 1 LLM call
         _root_agent_instance = SequentialAgent(
             name=ROOT_AGENT_NAME,
             sub_agents=[
                 inspiration_agent,
                 parallel_agent,
-                planning_agent,
-                formatter_agent
+                planning_formatter_agent,  # NEW merged agent (replaces planning + formatter)
             ],
             after_agent_callback=after_agent_callback,
         )
