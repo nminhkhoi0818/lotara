@@ -415,7 +415,7 @@ export default function SavedTripDetailPage() {
               <img
                 src={selectedImage}
                 alt="Full size"
-                className="w-full h-auto max-h-[85vh] object-contain"
+                className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
               />
             </div>
           )}
