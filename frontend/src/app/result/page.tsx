@@ -37,6 +37,8 @@ export default function ResultPage() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [tripNote, setTripNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem("recommendations");
@@ -66,6 +68,11 @@ export default function ResultPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setImageDialogOpen(true);
   };
 
   if (!recommendations || !recommendations.itinerary) {
@@ -255,13 +262,13 @@ export default function ResultPage() {
                   <div className="mb-6">
                     <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
                       Day {day?.trip_number}:{" "}
-                      {day?.start_date
+                      {/* {day?.start_date
                         ? new Date(day.start_date).toLocaleDateString("en-US", {
                             weekday: "long",
                             month: "long",
                             day: "numeric",
                           })
-                        : ""}
+                        : ""} */}
                     </h3>
                     <p className="text-muted-foreground">{day?.summary}</p>
                   </div>
@@ -273,16 +280,19 @@ export default function ResultPage() {
                       >
                         {event?.image_url ? (
                           event.image_url.startsWith("https") ? (
-                            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                            <button
+                              onClick={() => handleImageClick(event.image_url)}
+                              className="w-32 h-32 rounded-lg overflow-hidden shrink-0 hover:opacity-80 transition-opacity cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                            >
                               <img
                                 src={event.image_url}
                                 alt={event?.description}
                                 className="w-full h-full object-cover"
                               />
-                            </div>
+                            </button>
                           ) : (
-                            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
-                              <ImageOff className="w-8 h-8 text-muted-foreground" />
+                            <div className="w-32 h-32 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                              <ImageOff className="w-12 h-12 text-muted-foreground" />
                             </div>
                           )
                         ) : null}
@@ -334,6 +344,24 @@ export default function ResultPage() {
           </div>
         </div>
       </main>
+
+      {/* Image Modal */}
+      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Full size image</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <div className="relative">
+              <img
+                src={selectedImage}
+                alt="Full size"
+                className="w-full h-auto max-h-[85vh] object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

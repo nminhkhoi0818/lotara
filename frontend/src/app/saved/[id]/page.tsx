@@ -15,6 +15,7 @@ import {
   Trash2,
   ArrowLeft,
   Loader2,
+  ImageOff,
 } from "lucide-react";
 import { userService, SaveTripResponse } from "@/services/user.service";
 import { toast } from "sonner";
@@ -29,6 +30,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function SavedTripDetailPage() {
   const params = useParams();
@@ -41,6 +49,8 @@ export default function SavedTripDetailPage() {
   const [activeTab, setActiveTab] = useState("itinerary");
   const [deleting, setDeleting] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchTrip = async () => {
@@ -66,6 +76,11 @@ export default function SavedTripDetailPage() {
       fetchTrip();
     }
   }, [tripId]);
+
+  const handleImageClick = (imageUrl: string) => {
+    setSelectedImage(imageUrl);
+    setImageDialogOpen(true);
+  };
 
   const handleDelete = async () => {
     if (!trip) return;
@@ -123,18 +138,19 @@ export default function SavedTripDetailPage() {
 
   // Extract hotels from itinerary
   const hotels = tripOverview
-    .flatMap(
-      (day: any) =>
-        day.events?.filter((e: any) => e.event_type === "hotel_checkin") || [],
-    )
-    .map((event: any) => ({
-      name: event.location?.name || "Unknown Hotel",
-      price:
-        parseInt(event.budget?.split(" ")[0]?.replace("$", "") || "0") || 0,
-      wifi: "Good",
-      noise: "Quiet",
-      why: event.description || "",
-    }));
+    ? tripOverview
+        .flatMap((day: any) =>
+          day.events?.filter((e: any) => e.event_type === "hotel_checkin"),
+        )
+        .map((event: any) => ({
+          name: event.location?.name,
+          price:
+            parseInt(event.budget?.split(" ")[0]?.replace("$", "") || "0") || 0,
+          wifi: "Good",
+          noise: "Quiet",
+          why: event.description,
+        }))
+    : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -245,138 +261,126 @@ export default function SavedTripDetailPage() {
 
             {/* Hotels Tab */}
             <TabsContent value="hotels" className="space-y-4">
-              {hotels.length > 0 ? (
-                hotels.map((hotel: any, i: any) => (
-                  <Card
-                    key={i}
-                    className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-colors"
-                  >
-                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                      <div className="flex-1">
-                        <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
-                          {hotel.name}
-                        </h3>
-                        <p className="text-muted-foreground mb-4">
-                          {hotel.why}
-                        </p>
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Per Night
-                            </p>
-                            <p className="font-semibold text-foreground">
-                              ${hotel.price}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              WiFi Quality
-                            </p>
-                            <p className="font-semibold text-foreground">
-                              {hotel.wifi}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Noise Level
-                            </p>
-                            <p className="font-semibold text-foreground">
-                              {hotel.noise}
-                            </p>
-                          </div>
+              {hotels?.map((hotel: any, i: any) => (
+                <Card
+                  key={i}
+                  className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-colors"
+                >
+                  <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div className="flex-1">
+                      <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
+                        {hotel?.name}
+                      </h3>
+                      <p className="text-muted-foreground mb-4">{hotel?.why}</p>
+                      <div className="grid grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Per Night
+                          </p>
+                          <p className="font-semibold text-foreground">
+                            ${hotel?.price}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            WiFi Quality
+                          </p>
+                          <p className="font-semibold text-foreground">
+                            {hotel?.wifi}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-xs text-muted-foreground mb-1">
+                            Noise Level
+                          </p>
+                          <p className="font-semibold text-foreground">
+                            {hotel?.noise}
+                          </p>
                         </div>
                       </div>
                     </div>
-                  </Card>
-                ))
-              ) : (
-                <Card className="p-12 text-center">
-                  <p className="text-muted-foreground">
-                    No hotel information available
-                  </p>
+                  </div>
                 </Card>
-              )}
+              ))}
             </TabsContent>
 
             {/* Itinerary Tab */}
             <TabsContent value="itinerary" className="space-y-6">
-              {tripOverview.length > 0 ? (
-                tripOverview.map((day: any, i: any) => (
-                  <Card
-                    key={i}
-                    className="p-6 md:p-8 rounded-2xl border-border/50"
-                  >
-                    <div className="mb-6">
-                      <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
-                        Day {day.trip_number || i + 1}:{" "}
-                        {day.start_date
-                          ? new Date(day.start_date).toLocaleDateString(
-                              "en-US",
-                              {
-                                weekday: "long",
-                                month: "long",
-                                day: "numeric",
-                              },
-                            )
-                          : `Day ${i + 1}`}
-                      </h3>
-                      <p className="text-muted-foreground">
-                        {day.summary || ""}
-                      </p>
-                    </div>
-                    <div className="space-y-4">
-                      {day.events?.map((event: any, j: any) => (
-                        <div
-                          key={j}
-                          className="flex gap-4 p-4 rounded-lg bg-muted/30 border border-border/30"
-                        >
-                          {event.image_url && (
-                            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+              {tripOverview?.map((day: any, i: any) => (
+                <Card
+                  key={i}
+                  className="p-6 md:p-8 rounded-2xl border-border/50"
+                >
+                  <div className="mb-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
+                      Day {day?.trip_number || i + 1}:{" "}
+                      {/* {day?.start_date
+                        ? new Date(day.start_date).toLocaleDateString("en-US", {
+                            weekday: "long",
+                            month: "long",
+                            day: "numeric",
+                          })
+                        : `Day ${i + 1}`} */}
+                    </h3>
+                    <p className="text-muted-foreground">
+                      {day?.summary || ""}
+                    </p>
+                  </div>
+                  <div className="space-y-4">
+                    {day?.events?.map((event: any, j: any) => (
+                      <div
+                        key={j}
+                        className="flex gap-4 p-4 rounded-lg bg-muted/30 border border-border/30"
+                      >
+                        {event?.image_url ? (
+                          event.image_url.startsWith("https") ? (
+                            <button
+                              onClick={() => handleImageClick(event.image_url)}
+                              className="w-32 h-32 rounded-lg overflow-hidden shrink-0 hover:opacity-80 transition-opacity cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                            >
                               <img
                                 src={event.image_url}
-                                alt={event.description}
+                                alt={event?.description}
                                 className="w-full h-full object-cover"
                               />
+                            </button>
+                          ) : (
+                            <div className="w-32 h-32 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                              <ImageOff className="w-12 h-12 text-muted-foreground" />
                             </div>
-                          )}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Clock className="w-4 h-4 text-muted-foreground" />
-                              <span className="text-sm font-medium text-foreground">
-                                {event.start_time || ""} -{" "}
-                                {event.end_time || ""}
-                              </span>
+                          )
+                        ) : null}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Clock className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium text-foreground">
+                              {event?.start_time || ""} -{" "}
+                              {event?.end_time || ""}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-foreground mb-1">
+                            {event?.description || ""}
+                          </h4>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>{event?.location?.name || ""}</span>
                             </div>
-                            <h4 className="font-semibold text-foreground mb-1">
-                              {event.description || ""}
-                            </h4>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-4 h-4" />
-                                <span>{event.location?.name || ""}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <DollarSign className="w-4 h-4" />
-                                <span>{event.budget || ""}</span>
-                              </div>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="w-4 h-4" />
+                              <span>{event?.budget || ""}</span>
                             </div>
                           </div>
                         </div>
-                      )) || (
-                        <p className="text-muted-foreground">
-                          No events for this day
-                        </p>
-                      )}
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <Card className="p-12 text-center">
-                  <p className="text-muted-foreground">
-                    No itinerary information available
-                  </p>
+                      </div>
+                    )) || (
+                      <p className="text-muted-foreground">
+                        No events for this day
+                      </p>
+                    )}
+                  </div>
                 </Card>
-              )}
+              ))}
             </TabsContent>
           </Tabs>
 
@@ -399,6 +403,24 @@ export default function SavedTripDetailPage() {
           </div>
         </div>
       </main>
+
+      {/* Image Modal */}
+      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Full size image</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <div className="relative">
+              <img
+                src={selectedImage}
+                alt="Full size"
+                className="w-full h-auto max-h-[85vh] object-contain"
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
