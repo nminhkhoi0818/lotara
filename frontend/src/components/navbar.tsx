@@ -24,12 +24,12 @@ export function Navbar() {
             >
               Start Planning
             </Link>
-            <Link
+            {/* <Link
               href="/persona"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Your Persona
-            </Link>
+            </Link> */}
             <Link
               href="/saved"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
