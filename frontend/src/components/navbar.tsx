@@ -36,12 +36,6 @@ export function Navbar() {
             >
               Saved Trips
             </Link>
-            <Link
-              href="/admin"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Dashboard
-            </Link>
           </div>
         </div>
       </div>

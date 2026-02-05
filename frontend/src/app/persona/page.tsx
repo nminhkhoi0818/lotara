@@ -44,7 +44,6 @@ export default function PersonaPage() {
   const handlePersonaSummary = async () => {
     try {
       const data = localStorage.getItem("onboardingAnswer");
-      console.log("Onboarding data for persona summary:", data);
       setIsStreaming(true);
       setIsTyping(true);
       await userService.getPersonaSummary(

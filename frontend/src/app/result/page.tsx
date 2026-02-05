@@ -44,8 +44,8 @@ export default function ResultPage() {
     setSaving(true);
     try {
       await userService.saveTrip(localStorage.getItem("userId") || "", {
-        name: recommendations.itinerary.trip_name,
-        itinerary_data: recommendations.itinerary,
+        name: recommendations?.itinerary?.trip_name,
+        itinerary_data: recommendations?.itinerary,
         notes: tripNote,
       });
 
@@ -61,7 +61,7 @@ export default function ResultPage() {
     }
   };
 
-  if (!recommendations) {
+  if (!recommendations || !recommendations.itinerary) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -79,16 +79,18 @@ export default function ResultPage() {
 
   // Extract hotels from itinerary
   const hotels = tripOverview
-    .flatMap((day: any) =>
-      day.events.filter((e: any) => e.event_type === "hotel_checkin"),
-    )
-    .map((event: any) => ({
-      name: event.location.name,
-      price: parseInt(event.budget.split(" ")[0].replace("$", "")) || 0,
-      wifi: "Good",
-      noise: "Quiet",
-      why: event.description,
-    }));
+    ? tripOverview
+        .flatMap((day: any) =>
+          day.events?.filter((e: any) => e.event_type === "hotel_checkin"),
+        )
+        .map((event: any) => ({
+          name: event.location?.name,
+          price: parseInt(event.budget?.split(" ")[0].replace("$", "")) || 0,
+          wifi: "Good",
+          noise: "Quiet",
+          why: event.description,
+        }))
+    : [];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -99,11 +101,11 @@ export default function ResultPage() {
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-3">
-                  {itinerary.trip_name}
+                  {itinerary?.trip_name}
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl">
-                  From {itinerary.start_date} to {itinerary.end_date} •{" "}
-                  {itinerary.total_days} days
+                  From {itinerary?.start_date} to {itinerary?.end_date} •{" "}
+                  {itinerary?.total_days} days
                 </p>
               </div>
 
@@ -166,7 +168,7 @@ export default function ResultPage() {
                   Total Days
                 </p>
                 <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  {itinerary.total_days} Days
+                  {itinerary?.total_days} Days
                 </p>
               </div>
               <div className="p-4 md:p-6 rounded-xl bg-secondary/5 border border-secondary/20">
@@ -174,7 +176,7 @@ export default function ResultPage() {
                   Average Daily Budget
                 </p>
                 <p className="text-2xl md:text-3xl font-bold text-foreground">
-                  {itinerary.average_budget_spend_per_day}
+                  {itinerary?.average_budget_spend_per_day}
                 </p>
               </div>
             </div>
@@ -193,7 +195,7 @@ export default function ResultPage() {
 
             {/* Hotels Tab */}
             <TabsContent value="hotels" className="space-y-4">
-              {hotels.map((hotel: any, i: any) => (
+              {hotels?.map((hotel: any, i: any) => (
                 <Card
                   key={i}
                   className="p-6 md:p-8 rounded-2xl border-border/50 hover:border-primary/30 transition-colors"
@@ -201,16 +203,16 @@ export default function ResultPage() {
                   <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
                     <div className="flex-1">
                       <h3 className="text-xl md:text-2xl font-bold text-foreground mb-3">
-                        {hotel.name}
+                        {hotel?.name}
                       </h3>
-                      <p className="text-muted-foreground mb-4">{hotel.why}</p>
+                      <p className="text-muted-foreground mb-4">{hotel?.why}</p>
                       <div className="grid grid-cols-3 gap-4">
                         <div>
                           <p className="text-xs text-muted-foreground mb-1">
                             Per Night
                           </p>
                           <p className="font-semibold text-foreground">
-                            ${hotel.price}
+                            ${hotel?.price}
                           </p>
                         </div>
                         <div>
@@ -218,7 +220,7 @@ export default function ResultPage() {
                             WiFi Quality
                           </p>
                           <p className="font-semibold text-foreground">
-                            {hotel.wifi}
+                            {hotel?.wifi}
                           </p>
                         </div>
                         <div>
@@ -226,7 +228,7 @@ export default function ResultPage() {
                             Noise Level
                           </p>
                           <p className="font-semibold text-foreground">
-                            {hotel.noise}
+                            {hotel?.noise}
                           </p>
                         </div>
                       </div>
@@ -238,24 +240,26 @@ export default function ResultPage() {
 
             {/* Itinerary Tab */}
             <TabsContent value="itinerary" className="space-y-6">
-              {tripOverview.map((day: any, i: any) => (
+              {tripOverview?.map((day: any, i: any) => (
                 <Card
                   key={i}
                   className="p-6 md:p-8 rounded-2xl border-border/50"
                 >
                   <div className="mb-6">
                     <h3 className="text-xl md:text-2xl font-bold text-foreground mb-2">
-                      Day {day.trip_number}:{" "}
-                      {new Date(day.start_date).toLocaleDateString("en-US", {
-                        weekday: "long",
-                        month: "long",
-                        day: "numeric",
-                      })}
+                      Day {day?.trip_number}:{" "}
+                      {day?.start_date
+                        ? new Date(day.start_date).toLocaleDateString("en-US", {
+                            weekday: "long",
+                            month: "long",
+                            day: "numeric",
+                          })
+                        : ""}
                     </h3>
-                    <p className="text-muted-foreground">{day.summary}</p>
+                    <p className="text-muted-foreground">{day?.summary}</p>
                   </div>
                   <div className="space-y-4">
-                    {day.events.map((event: any, j: any) => (
+                    {day?.events?.map((event: any, j: any) => (
                       <div
                         key={j}
                         className="flex gap-4 p-4 rounded-lg bg-muted/30 border border-border/30"
@@ -273,20 +277,20 @@ export default function ResultPage() {
                           <div className="flex items-center gap-2 mb-1">
                             <Clock className="w-4 h-4 text-muted-foreground" />
                             <span className="text-sm font-medium text-foreground">
-                              {event.start_time} - {event.end_time}
+                              {event?.start_time} - {event?.end_time}
                             </span>
                           </div>
                           <h4 className="font-semibold text-foreground mb-1">
-                            {event.description}
+                            {event?.description}
                           </h4>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground">
                             <div className="flex items-center gap-1">
                               <MapPin className="w-4 h-4" />
-                              <span>{event.location.name}</span>
+                              <span>{event?.location?.name}</span>
                             </div>
                             <div className="flex items-center gap-1">
                               <DollarSign className="w-4 h-4" />
-                              <span>{event.budget}</span>
+                              <span>{event?.budget}</span>
                             </div>
                           </div>
                         </div>
