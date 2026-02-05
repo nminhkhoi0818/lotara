@@ -8,7 +8,14 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookmarkPlus, Share2, Clock, MapPin, DollarSign } from "lucide-react";
+import {
+  BookmarkPlus,
+  Share2,
+  Clock,
+  MapPin,
+  DollarSign,
+  ImageOff,
+} from "lucide-react";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";
 import {
@@ -264,15 +271,21 @@ export default function ResultPage() {
                         key={j}
                         className="flex gap-4 p-4 rounded-lg bg-muted/30 border border-border/30"
                       >
-                        {event.image_url && (
-                          <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
-                            <img
-                              src={event.image_url}
-                              alt={event.description}
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
+                        {event?.image_url ? (
+                          event.image_url.startsWith("https") ? (
+                            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0">
+                              <img
+                                src={event.image_url}
+                                alt={event?.description}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-muted flex items-center justify-center">
+                              <ImageOff className="w-8 h-8 text-muted-foreground" />
+                            </div>
+                          )
+                        ) : null}
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <Clock className="w-4 h-4 text-muted-foreground" />
