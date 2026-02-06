@@ -23,6 +23,7 @@ from src.travel_lotara.tools import (
     date_season_tool,
     milvus_retrieval_tool,
 )
+from travel_lotara.agents.tracing_config import setup_agent_tracing
 # from src.travel_lotara.tools.search import google_search_grounding
 
 from .prompt import *
@@ -61,3 +62,6 @@ inspiration_agent_config = AgentConfig(
 inspiration_agent = BaseAgent(
     config=inspiration_agent_config
 ).create_agent()
+
+# Tracing
+setup_agent_tracing(inspiration_agent, environment=settings.project_environment)

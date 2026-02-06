@@ -116,6 +116,16 @@ AGENT_METADATA_CONFIG = {
             "version": VERSION,
             "parent_agent": "rag_retrieval_parallel_agent"
         }
+    },
+    "planning_formatter_agent": {
+        "tags": ["planning", "formatting", "merged"],
+        "metadata": {
+            "agent_type": "merged",
+            "role": "planning_formatter",
+            "team": "itinerary",
+            "purpose": "Merged planning and formatting agent for itinerary creation",
+            "version": VERSION
+        }
     }
 }
 
@@ -320,6 +330,8 @@ def setup_agent_tracing(
     elif agent.name == "activities_retrieval_agent":
         instrument_agent_with_config(agent, "activities_retrieval_agent", common_metadata)
     
+    elif agent.name == "planning_formatter_agent":
+        instrument_agent_with_config(agent, "planning_formatter_agent", common_metadata)
 
 def add_agent_metadata_config(agent_name: str, tags: List[str], metadata: Dict[str, Any]):
     """
