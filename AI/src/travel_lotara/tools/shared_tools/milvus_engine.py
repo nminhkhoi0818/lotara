@@ -72,7 +72,7 @@ _genai_client: Optional[genai.Client] = None
 
 # Constants
 COLLECTION_NAME = "lotara_travel"
-EMBEDDING_DIM = 768  # Google text-embedding-004 dimension
+EMBEDDING_DIM = 768  # Google gemini-embedding-001 with output_dimensionality=768
 MILVUS_DB_FILE = "milvus_lotara.db"  # Local file for Milvus Lite
 
 # Zilliz Cloud configuration (optional - falls back to Milvus Lite if not set)
@@ -146,11 +146,18 @@ def get_embedding(text: str) -> List[float]:
     if cached is not None:
         return cached
     
-    # Generate embedding
+    # Generate embedding with 768 dimensions
+    # Note: gemini-embedding-001 defaults to 3072 dims, must specify output_dimensionality
     client = get_genai_client()
+    from google.genai import types
+    
     result = client.models.embed_content(
-        model="text-embedding-004",
-        contents=[text]
+        model="gemini-embedding-001",
+        contents=[text],
+        config=types.EmbedContentConfig(
+            output_dimensionality=EMBEDDING_DIM,  # 768 dimensions
+            task_type="RETRIEVAL_QUERY"  # Optimized for search queries
+        )
     )
     
     embedding = result.embeddings[0].values

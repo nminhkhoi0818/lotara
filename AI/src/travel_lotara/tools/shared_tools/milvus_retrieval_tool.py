@@ -126,9 +126,44 @@ User Profile Context:
             return error_result
 
 
+@trace_tool(name="milvus_location_retrieval", tags=["milvus", "retrieval", "locations"])
+def retrieve_data_from_milvus(query: str, top_k: int = 5, tool_context: Optional[ToolContext] = None) -> Dict[str, Any]:
+    """
+    Retrieve location recommendations from Milvus cloud.
+    
+    Use this tool to get detailed Vietnam tourism location data based on user queries.
+    Each location includes:
+    - Location name, province, description, rating
+    - Destinations (places to visit with budget, time, duration)
+    - Cuisine recommendations (restaurants with budget, duration)
+    - Hotels (with cost category and reviews)
+    - Activities list
+    - Images and keywords
+    
+    Args:
+        query: Description of what the user is looking for (e.g., "beach destinations", 
+               "cultural sites near Hanoi", "family-friendly activities")
+        top_k: Number of locations to retrieve (default: 5, max recommended: 10)
+        tool_context: Automatically provided by ADK framework
+        
+    Returns:
+        Dictionary with retrieved locations and metadata
+        
+    Example:
+        result = retrieve_data_from_milvus(
+            query="relaxing beach destinations for families",
+            top_k=3
+        )
+        locations = result["locations"]
+    """
+    tool = MilvusRetrievalTool()
+    return tool.run(query=query, top_k=top_k, tool_context=tool_context)
+
+
+
 # Create tool instance
 milvus_retrieval_tool = FunctionTool(
-    func=MilvusRetrievalTool().run
+    func=retrieve_data_from_milvus,
 )
 
 

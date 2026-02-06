@@ -179,8 +179,12 @@ def get_collection():
 # -----------------------------
 # Embedding function with caching and async support
 # -----------------------------
-def get_embedding(text: str, model: str = "text-embedding-004") -> List[float]:
-    """Generate embedding for query text with LRU caching."""
+def get_embedding(text: str, model: str = "gemini-embedding-001") -> List[float]:
+    """Generate embedding for query text with LRU caching.
+    
+    Uses gemini-embedding-001 with 768 dimensions.
+    Note: gemini-embedding-001 defaults to 3072 dims, must specify output_dimensionality.
+    """
     # Create hash-based cache key for better collision handling
     cache_key = hashlib.md5(f"{text}_{model}".encode('utf-8')).hexdigest()
     
@@ -189,9 +193,17 @@ def get_embedding(text: str, model: str = "text-embedding-004") -> List[float]:
     if cached is not None:
         return cached
     
-    # Generate embedding
+    # Generate embedding with 768 dimensions
+    from google.genai import types
     client = get_genai_client()
-    result = client.models.embed_content(model=model, contents=[text])
+    result = client.models.embed_content(
+        model=model,
+        contents=[text],
+        config=types.EmbedContentConfig(
+            output_dimensionality=768,  # Consistent with Milvus configuration
+            task_type="RETRIEVAL_QUERY"  # Optimized for search queries
+        )
+    )
     vec = result.embeddings[0].values
     
     # Cache the result with LRU eviction
@@ -199,8 +211,13 @@ def get_embedding(text: str, model: str = "text-embedding-004") -> List[float]:
     
     return vec
 
-def get_embeddings_batch(texts: List[str], model: str = "text-embedding-004") -> List[List[float]]:
-    """Generate embeddings for multiple texts in batch (more efficient)."""
+def get_embeddings_batch(texts: List[str], model: str = "gemini-embedding-001") -> List[List[float]]:
+    """Generate embeddings for multiple texts in batch (more efficient).
+    
+    Uses gemini-embedding-001 with 768 dimensions.
+    """
+    from google.genai import types
+    
     # Filter cached vs uncached
     results = [None] * len(texts)
     uncached_indices = []
@@ -218,7 +235,14 @@ def get_embeddings_batch(texts: List[str], model: str = "text-embedding-004") ->
     # Batch generate uncached embeddings
     if uncached_texts:
         client = get_genai_client()
-        batch_result = client.models.embed_content(model=model, contents=uncached_texts)
+        batch_result = client.models.embed_content(
+            model=model,
+            contents=uncached_texts,
+            config=types.EmbedContentConfig(
+                output_dimensionality=768,
+                task_type="RETRIEVAL_QUERY"
+            )
+        )
         
         for idx, embedding in zip(uncached_indices, batch_result.embeddings):
             vec = embedding.values
@@ -229,7 +253,7 @@ def get_embeddings_batch(texts: List[str], model: str = "text-embedding-004") ->
     
     return results
 
-async def get_embedding_async(text: str, model: str = "text-embedding-004") -> List[float]:
+async def get_embedding_async(text: str, model: str = "gemini-embedding-001") -> List[float]:
     """Async version of get_embedding (runs in thread pool to avoid blocking)."""
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(None, get_embedding, text, model)
