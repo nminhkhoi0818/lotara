@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import ReactMarkdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -16,6 +17,7 @@ import { recommendService } from "@/services/recommend.service";
 import { userService } from "@/services/user.service";
 import LoadingOverlay from "@/components/loading-overlay";
 import LoadingWave from "@/components/loading-wave";
+import LoadingOverlayQuote from "@/components/loading-overlay-quote";
 
 interface PersonaAnswers {
   duration: string;
@@ -184,7 +186,7 @@ export default function PersonaPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-linear-to-br from-background to-background">
-      {isGenerating && <LoadingOverlay />}
+      {isGenerating && <LoadingOverlayQuote />}
       <main className="flex-1">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
           {/* Header */}
@@ -221,12 +223,12 @@ export default function PersonaPage() {
                 </div>
               </div>
               {summary.length === 0 && <LoadingWave />}
-              <p className="text-base md:text-lg leading-relaxed text-foreground/90">
-                {displayedSummary}
-                {summary.length !== 0 && (isStreaming || isTyping) && (
-                  <span className="inline-block w-0.5 h-5 bg-primary ml-1 animate-pulse" />
-                )}
-              </p>
+              <div className="text-base md:text-lg leading-relaxed text-foreground/90 prose prose-sm md:prose-base max-w-none">
+                <ReactMarkdown>{displayedSummary}</ReactMarkdown>
+              </div>
+              {/* {summary.length !== 0 && (isStreaming || isTyping) && (
+                <span className="inline-block w-0.5 h-5 bg-primary ml-1 animate-pulse" />
+              )} */}
             </Card>
           </div>
 
