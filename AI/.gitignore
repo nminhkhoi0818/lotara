@@ -181,3 +181,16 @@ src/travel_lotara/test_agents.py
 src/quick_test.py
 deployment/*
 .vercel
+
+test_*.*
+quick_test*.*
+quick*.*
+minimal*.*
+final*.*
+debug*.*
+CHROMA*.*
+check*.*
+results/*
+data/*
+setup_chromadb.py
+

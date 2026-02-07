@@ -9,4 +9,6 @@ __all__ = [
     "user_profile_tool",
     "date_season_tool",
     "calendar_tool",
+    "milvus_retrieval_tool",
+    "milvus_location_retrieval",
 ]

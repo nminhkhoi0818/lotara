@@ -3,6 +3,7 @@ from abc import abstractmethod
 from datetime import datetime
 from ..base_tool import BaseTool
 from google.adk.tools import ToolContext, FunctionTool
+from src.travel_lotara.tracking import trace_tool
 
 class DateSeasonTool(BaseTool):
     """Derives season and travel context from dates."""
@@ -13,7 +14,9 @@ class DateSeasonTool(BaseTool):
         start_date_str = state.get("start_date")
         if not start_date_str:
             return {
-                "error": "start_date not found in state",
+                "error": "Start date not set yet",
+                "instruction": "Please use memorize() to set start_date first",
+                "example": "memorize('start_date', '2026-03-15')",
                 "season": "unknown",
                 "month": None,
                 "is_peak_season": False,
@@ -46,6 +49,7 @@ class DateSeasonTool(BaseTool):
         return travel_context
 
 
+@trace_tool(name="date_season_context", tags=["context", "date", "season"])
 def get_date_season_context(tool_context: ToolContext):
     """Derive season and travel context from trip dates."""
     return DateSeasonTool().run(tool_context)

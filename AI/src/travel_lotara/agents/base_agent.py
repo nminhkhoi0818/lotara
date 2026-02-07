@@ -53,7 +53,7 @@ class AgentConfig(BaseModel):
         arbitrary_types_allowed=True
     )
 
-    generate_content_config : Optional[Dict[str, Any]] = Field(
+    generate_content_config : Optional[types.GenerateContentConfig] = Field(
         default=None,
         description="Additional configuration for content generation"
     )
@@ -77,17 +77,15 @@ class BaseAgent:
 
     def create_agent(self) -> Agent:
         """Create an agent with the given configuration."""
-        # Apply retry options for 429/503 handling
+        from src.travel_lotara.config.settings import FAST_HTTP_OPTIONS
+        
+        # Apply optimized generation config if provided, otherwise use fast defaults
         generate_config = self.generate_content_config or types.GenerateContentConfig()
         
-        # Set default retry options if not already configured
+        # Apply fast retry options for 429/503 handling (optimized for production)
+        # Only override if not already configured
         if not hasattr(generate_config, 'http_options') or generate_config.http_options is None:
-            generate_config.http_options = types.HttpOptions(
-                retry_options=types.HttpRetryOptions(
-                    initial_delay=60,  # Start with 60s delay for 429 errors
-                    attempts=5  # Try up to 5 times before giving up
-                )
-            )
+            generate_config.http_options = FAST_HTTP_OPTIONS  # Use optimized retry config
         
         return Agent(
             model=self.model_name,

@@ -38,10 +38,10 @@ async def process_single_job(job_id: str) -> dict:
         request_data = job["request"]
         print(f"[WORKER] Job {job_id} - Running agents for {request_data.get('destination', 'unknown')}")
         
-        # Update progress - inspiration agent starting
+        # Update progress - pre-agent starting
         kv_client.update_job(job_id, {
-            "progress": 30,
-            "message": "Inspiration agent analyzing preferences..."
+            "progress": 20,
+            "message": "Pre-agent optimizing request..."
         })
         
         # Run the agent system
@@ -51,10 +51,16 @@ async def process_single_job(job_id: str) -> dict:
             backend_json=request_data,
         )
         
+        # Update progress - inspiration agent
+        kv_client.update_job(job_id, {
+            "progress": 50,
+            "message": "Inspiration agent generating concepts..."
+        })
+        
         # Update progress - planning agent
         kv_client.update_job(job_id, {
-            "progress": 70,
-            "message": "Planning agent creating itinerary..."
+            "progress": 80,
+            "message": "Planning agent creating detailed itinerary..."
         })
         
         # Parse the response

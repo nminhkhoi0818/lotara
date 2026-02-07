@@ -17,14 +17,18 @@
 
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool
+from google.adk.tools import FunctionTool
 from src.travel_lotara.tools import (
     user_profile_tool, 
-    date_season_tool
+    date_season_tool,
+    milvus_retrieval_tool,
 )
+from travel_lotara.agents.tracing_config import setup_agent_tracing
 # from src.travel_lotara.tools.search import google_search_grounding
 
 from .prompt import *
-from src.travel_lotara.config.settings import get_settings
+from src.travel_lotara.config.settings import get_settings, FAST_GENERATION_CONFIG
+from src.travel_lotara.config.logging_config import get_logger
 from src.travel_lotara.agents.shared_libraries import (
     DestinationDiscoveryPlan,
     ThemeAndStylePlan,
@@ -39,8 +43,9 @@ from src.travel_lotara.agents.base_agent import BaseAgent, AgentConfig
 
 # GLOBAL SETTINGS
 settings = get_settings()
+logger = get_logger(__name__)
 MODEL_ID = settings.model
-print(f"[DEBUG] Inspiration Agent using model: {MODEL_ID}")
+logger.debug(f"Inspiration Agent using model: {MODEL_ID}")
 
 
 ## Inspiration Agent
@@ -49,10 +54,14 @@ inspiration_agent_config = AgentConfig(
     name="inspiration_agent",
     description="Provide travel inspiration based on user preferences and constraints.",
     instruction=INSPIRATION_AGENT_INSTR,
+    generate_content_config=FAST_GENERATION_CONFIG,  # Optimized for speed
     # output_schema=Inpsiration_Output,  # Removed to allow sequential flow
-    output_key="inspiration_output",
+    output_key="inspiration_output"
 )
 
 inspiration_agent = BaseAgent(
     config=inspiration_agent_config
 ).create_agent()
+
+# Tracing
+setup_agent_tracing(inspiration_agent, environment=settings.project_environment)

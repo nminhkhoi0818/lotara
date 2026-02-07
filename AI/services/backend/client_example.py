@@ -11,7 +11,7 @@ class LotaraClient:
     def __init__(self, base_url: str = "http://localhost:8000"):
         """Initialize client with base URL."""
         self.base_url = base_url
-        self.timeout = 180  # 3 minutes
+        self.timeout = 300  # 5 minutes (increased for production)
     
     def health_check(self) -> Dict[str, Any]:
         """Check API health status."""
@@ -104,7 +104,6 @@ if __name__ == "__main__":
         itinerary = result.get("itinerary", {})
         print(f"\n📋 Itinerary Summary:")
         print(f"   Trip: {itinerary.get('trip_name', 'N/A')}")
-        print(f"   Dates: {itinerary.get('start_date')} to {itinerary.get('end_date')}")
         print(f"   Duration: {itinerary.get('total_days')} days")
         print(f"   Session: {result['session_id']}")
         

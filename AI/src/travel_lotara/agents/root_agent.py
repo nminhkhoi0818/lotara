@@ -16,29 +16,30 @@
 
 import uuid
 
-from google.adk.agents.llm_agent import LlmAgent
-from google.adk.agents import SequentialAgent
+from google.adk.agents import SequentialAgent, ParallelAgent
 from google.genai import types
-# Lazy import to avoid circular dependency
-# from src.travel_lotara.tools import _load_precreated_itinerary
 from openinference.instrumentation import using_session
 
 from .prompt import *
 from src.travel_lotara.agents.sub_agents import (
     inspiration_agent,
-    planning_agent,
-    # pretrip_agent,
-    refactoring_output_agent
+    planning_formatter_agent,  # NEW merged agent (replaces planning + formatter)
+    # Import factory functions instead of singleton agents
+    create_attraction_retrieval_agent,
+    create_hotel_retrieval_agent,
+    create_activities_retrieval_agent,
 )
-from ..tools.context_tools import user_profile_tool 
 from src.travel_lotara.config.settings import get_settings
 from src.travel_lotara.agents.callbacks import (
-    before_agent_callback, 
-    before_tool_callback,
     after_agent_callback
-    # after_tool_callback
 )
 from src.travel_lotara.agents.shared_libraries import OutputMessage
+
+# Tracing 
+from src.travel_lotara.tracking import get_tracer
+from src.travel_lotara.agents.tracing_config import (
+    setup_agent_tracing
+)
 
 
 settings = get_settings()
@@ -46,31 +47,71 @@ MODEL_ID = settings.model
 ROOT_AGENT_NAME = "travel_lotara_root_agent"
 ROOT_AGENT_DESCRIPTION = "A Travel Conceirge using the services of multiple sub-agents"
 
-# Configure retry options for handling 429/503 errors
-retry_config = types.GenerateContentConfig(
-    http_options=types.HttpOptions(
-        retry_options=types.HttpRetryOptions(
-            initial_delay=60,  # 60s initial delay for rate limits
-            attempts=5  # Try up to 5 times at ADK level
-        )
-    )
-)
+
+# Global variable to hold the singleton instance
+_root_agent_instance = None
 
 
-with using_session(session_id=uuid.uuid4()):
-    # SequentialAgent requires name and sub_agents
-    # All agents must run sequentially - only the final agent (refactoring_output_agent) has output_schema
-    root_agent = SequentialAgent(
-        name=ROOT_AGENT_NAME,
+def get_root_agent():
+    """
+    Get or create the root agent instance (singleton pattern).
+    
+    This ensures the root agent is only created once, even if the module
+    is imported multiple times.
+    
+    Returns:
+        The root agent instance
+    """
+    global _root_agent_instance
+    
+    if _root_agent_instance is not None:
+        return _root_agent_instance
+    
+    # Create parallel agent 
+    parallel_agent = ParallelAgent(
+        name="rag_retrieval_parallel_agent",
         sub_agents=[
-            inspiration_agent,
-            planning_agent,
-            refactoring_output_agent
-        ],
-        after_agent_callback=after_agent_callback,
+            create_attraction_retrieval_agent(),
+            create_hotel_retrieval_agent(),
+            create_activities_retrieval_agent(),
+        ]
     )
+    
+    # Instrument parallel agent with Opik tracing
+    setup_agent_tracing(parallel_agent, environment=settings.project_environment)
+    
+    with using_session(session_id=uuid.uuid4()):
+        # SequentialAgent requires name and sub_agents
+        # OPTIMIZED Flow (3 steps instead of 4):
+        #   1. inspiration_agent → recommends regions
+        #   2. parallel RAG retrieval → gets locations, hotels, activities  
+        #   3. planning_formatter_agent → creates AND formats itinerary as JSON (MERGED)
+        # 
+        # SAVINGS: 15-25s by combining planning + formatting into 1 LLM call
+        _root_agent_instance = SequentialAgent(
+            name=ROOT_AGENT_NAME,
+            sub_agents=[
+                inspiration_agent,
+                parallel_agent,
+                planning_formatter_agent,  # NEW merged agent (replaces planning + formatter)
+            ],
+            after_agent_callback=after_agent_callback,
+        )
 
-# Instrument with Opik tracing (automatically instruments all sub-agents)
-from src.travel_lotara.tracking import get_tracer
-tracer = get_tracer()
-tracer.instrument_agent(root_agent)
+    # Instrument with Opik tracing (automatically instruments all sub-agents)
+    setup_agent_tracing(_root_agent_instance, environment=settings.project_environment)
+    
+    return _root_agent_instance
+
+
+# For backward compatibility, create a module-level reference
+# This will be created on first access
+def __getattr__(name):
+    """
+    Lazy loading of root_agent.
+    
+    This allows the module to be imported without immediately creating the agent.
+    """
+    if name == "root_agent":
+        return get_root_agent()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

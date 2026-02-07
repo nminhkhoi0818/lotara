@@ -25,8 +25,15 @@ def main_run_app():
     # Get configuration from environment
     host = os.getenv("API_HOST", "0.0.0.0")
     port = int(os.getenv("API_PORT", "8000"))
-    workers = int(os.getenv("API_WORKERS", "1"))
+    
+    # IMPORTANT: Use 1 worker for in-memory cache to work properly
+    # For production with multiple workers, use Redis for caching
+    workers = 1  # Force single worker for cache consistency
     reload = os.getenv("ENVIRONMENT", "development") == "development"
+    
+    if os.getenv("API_WORKERS"):
+        print(f"[WARNING] API_WORKERS env var ignored. Using workers=1 for cache consistency.")
+        print(f"[INFO] For multi-worker setup, implement Redis cache sharing.")
     
     print(f"[INIT] Starting Lotara Travel Agent API")
     print(f"[INIT] Host: {host}:{port}")

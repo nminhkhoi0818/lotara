@@ -27,16 +27,12 @@ class GenericEvent(BaseModel):
 class TripOverviewItinerary(BaseModel):
     trip_number: int = Field(description="Sequential trip number")
     summary: str = Field(description="Brief summary of the trip")
-    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
-    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
     events: List[GenericEvent] = Field(
         description="List of events for the trip day."
     )
 
 class Itinerary(BaseModel):
     trip_name: str = Field(description="Name of the trip")
-    start_date: str = Field(description="Trip start date (YYYY-MM-DD)")
-    end_date: str = Field(description="Trip end date (YYYY-MM-DD)")
     origin: str = Field(description="Trip origin location")
     destination: str = Field(description="Trip destination location")
     total_days: str = Field(description="Total number of days for the trip")
@@ -65,15 +61,11 @@ class ItineraryResponse(BaseModel):
                 "origin": "Ho Chi Minh City, Vietnam",
                 "destination": "Tokyo, Japan",    
                 "average_budget_spend_per_day": "400 USD",
-                "start_date": "2025-06-15",
-                "end_date": "2025-06-16",
                 "total_days": "2",
                 "average_ratings": "4.8",
                 "trip_overview": [
                     {
                     "trip_number": 1,
-                    "start_date": "2025-06-15",
-                    "end_date": "2025-06-16",
                     "summary": "Arrival in Tokyo, hotel check-in, visit Senso-ji Temple and Tokyo Tower.",
                     "events": [
                         {
@@ -124,8 +116,6 @@ class ItineraryResponse(BaseModel):
                     },
                     {
                     "trip_number": 2,
-                    "start_date": "2025-06-16",
-                    "end_date": "2025-06-16",
                     "summary": "Visit to Meiji Shrine, hotel check-out, flight back to Ho Chi Minh City.",
                     "events": [
                         {
