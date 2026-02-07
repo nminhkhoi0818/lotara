@@ -118,7 +118,7 @@ export default function ResultPage() {
                   {itinerary?.trip_name}
                 </h1>
                 <p className="text-lg text-muted-foreground max-w-2xl">
-                  From {itinerary?.start_date} to {itinerary?.end_date} •{" "}
+                  {/* From {itinerary?.start_date} to {itinerary?.end_date} •{" "} */}
                   {itinerary?.total_days} days
                 </p>
               </div>
