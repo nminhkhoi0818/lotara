@@ -69,14 +69,22 @@ export default function Home() {
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Button>
                   </Link>
-                  <button className="px-8 h-14 rounded-xl border-2 border-border text-foreground font-semibold hover:bg-accent/5 hover:border-primary/30 transition-all flex items-center justify-center gap-2">
+                  <button
+                    className="px-8 h-14 rounded-xl border-2 border-border text-foreground font-semibold hover:bg-accent/5 hover:border-primary/30 transition-all flex items-center justify-center gap-2"
+                    onClick={() =>
+                      window.open(
+                        "https://www.youtube.com/watch?v=1GEBAqUCNvs",
+                        "_blank",
+                      )
+                    }
+                  >
                     <Globe className="w-4 h-4" />
                     See Demo
                   </button>
                 </div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-2 gap-4 pt-8 border-t border-border/30">
+                {/* <div className="grid grid-cols-2 gap-4 pt-8 border-t border-border/30">
                   <div>
                     <p className="text-2xl font-bold text-foreground">2,000+</p>
                     <p className="text-sm text-muted-foreground">
@@ -89,7 +97,7 @@ export default function Home() {
                       To plan your trip
                     </p>
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Right side - Visual showcase with floating cards */}
@@ -343,8 +351,16 @@ export default function Home() {
                       Start Free Planning
                     </Button>
                   </Link>
-                  <button className="px-10 h-14 rounded-xl border-2 border-primary/30 text-foreground font-semibold hover:bg-primary/10 transition-all backdrop-blur">
-                    Schedule a Demo
+                  <button
+                    className="px-10 h-14 rounded-xl border-2 border-primary/30 text-foreground font-semibold hover:bg-primary/10 transition-all backdrop-blur"
+                    onClick={() =>
+                      window.open(
+                        "https://www.youtube.com/watch?v=1GEBAqUCNvs",
+                        "_blank",
+                      )
+                    }
+                  >
+                    See a Demo
                   </button>
                 </div>
 
