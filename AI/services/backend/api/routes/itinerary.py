@@ -115,6 +115,8 @@ async def generate_itinerary(request: ItineraryRequest):
                     # Extract metadata from itinerary for top-level fields
                     itinerary_obj = validation_result.itinerary
                     
+                    # Note: Evaluation already done in main.py run_agent() - no need to duplicate
+                    
                     result = {
                         "status": "completed",
                         "session_id": session.id if session else "unknown",
@@ -360,6 +362,8 @@ async def generate_itinerary_stream(request: ItineraryRequest):
                             tracker.mark_complete("Itinerary generated successfully!")
                             
                             itinerary_obj = validation_result.itinerary
+                            
+                            # Note: Evaluation already done in main.py run_agent() - no need to duplicate
                             
                             result = {
                                 "status": "completed",

@@ -10,9 +10,6 @@ from src.travel_lotara.guardrails.features import (
     input_intent_guard
 )
 
-from src.travel_lotara.guardrails.output_enforcer import (
-    enforce_final_json_output
-)
 
 from src.travel_lotara.agents.shared_libraries import OutputMessage
 
@@ -25,6 +22,10 @@ from src.travel_lotara.tracking import (
     track_thinking,
     ProgressTracker,
 )
+
+# Import inline evaluation (feedback-based approach for callbacks)
+
+import opik
 
 # Logger
 logger = get_logger(__name__)
@@ -245,4 +246,10 @@ def after_agent_callback(*, callback_context: CallbackContext) -> OutputMessage 
         logger.info("Itinerary validation complete")
     else:
         logger.warning("No valid itinerary found in state")
+    
+    # Note: Evaluation is handled by Opik Rules configured in the UI
+    # Rules automatically evaluate all traces with LLM-as-a-judge metrics
+    # No code needed here - just ensure traces have proper input/output structure
+    
+    return None
 

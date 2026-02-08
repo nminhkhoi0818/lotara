@@ -64,6 +64,9 @@ class OpikTracer:
         # Registry to track all created tracers for proper flushing
         self._tracer_registry: List[OpikADKTracer] = []
         
+        # Store current trace_id when available (for evaluation)
+        self.current_trace_id: Optional[str] = None
+        
         if self.enabled:
             self._configure_opik()
             self._initialize()

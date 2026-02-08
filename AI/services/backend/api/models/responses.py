@@ -18,6 +18,7 @@ class GenericEvent(BaseModel):
     departure_time: Optional[str] = Field(None, description="Departure time (for flights)")
     arrival_time: Optional[str] = Field(None, description="Arrival time (for flights)")
     location: Optional[LocationActivity] = Field(None, description="Location details")
+    location_name: Optional[str] = Field(None, description="Name of the location/destination for RAG retrieval")
     budget: Optional[str] = Field(None, description="Budget for the event")
     keywords: Optional[List[str]] = Field(None, description="Keywords related to the event")
     average_timespan: Optional[str] = Field(None, description="Average duration of the event")
@@ -73,6 +74,7 @@ class ItineraryResponse(BaseModel):
                         "description": "Flight from Ho Chi Minh City to Tokyo",
                         "departure_time": "08:00 AM UTC+7",
                         "arrival_time": "02:00 PM UTC+9",
+                        "location_name": "Tokyo, Japan",
                         "budget": "300 USD",
                         "keywords": ["flight", "Ho Chi Minh City", "Tokyo"],
                         "average_timespan": "6 hours",
@@ -85,6 +87,7 @@ class ItineraryResponse(BaseModel):
                             "name": "Tokyo Central Hotel",
                             "address": "1-1-1 Shinjuku, Tokyo, Japan"
                         },
+                        "location_name": "Tokyo Central Hotel",
                         "start_time": "03:00 PM UTC+9",
                         "end_time": "03:30 PM UTC+9",
                         "budget": "150 USD per night",
@@ -95,6 +98,7 @@ class ItineraryResponse(BaseModel):
                         {
                         "event_type": "visit",
                         "description": "Visit to Senso-ji Temple",
+                        "location_name": "Senso-ji Temple",
                         "start_time": "07:00 PM UTC+9",
                         "end_time": "08:30 PM UTC+9",
                         "budget": "50 USD",
@@ -105,6 +109,7 @@ class ItineraryResponse(BaseModel):
                         {
                         "event_type": "visit",
                         "description": "Visit to Tokyo Tower",
+                        "location_name": "Tokyo Tower",
                         "start_time": "09:00 PM UTC+9",
                         "end_time": "10:30 PM UTC+9",
                         "budget": "50 USD",
@@ -127,6 +132,7 @@ class ItineraryResponse(BaseModel):
                             "name": "Meiji Shrine",
                             "address": "1-1 Yoyogikamizonocho, Shibuya City, Tokyo, Japan"
                         },
+                        "location_name": "Meiji Shrine",
                         "budget": "58 USD",
                         "keywords": ["visit", "Meiji Shrine", "Tokyo"],
                         "average_timespan": "2 hours",
@@ -139,6 +145,7 @@ class ItineraryResponse(BaseModel):
                             "name": "Tokyo Central Hotel",
                             "address": "1-1-1 Shinjuku, Tokyo, Japan"
                         },
+                        "location_name": "Tokyo Central Hotel",
                         "start_time": "11:00 AM UTC+9",
                         "end_time": "11:30 AM UTC+9",
                         "budget": "0 USD",
@@ -149,6 +156,7 @@ class ItineraryResponse(BaseModel):
                         {
                         "event_type": "flight",
                         "description": "Flight from Tokyo to Ho Chi Minh City",
+                        "location_name": "Ho Chi Minh City, Vietnam",
                         "departure_time": "02:00 PM UTC+9",
                         "arrival_time": "06:00 PM UTC+7",
                         "budget": "300 USD",

@@ -224,6 +224,13 @@ def insert_locations(locations: List[Dict[str, Any]]) -> int:
         
     Returns:
         Number of locations inserted
+        
+    Note:
+        The metadata field stores nested structures with image_url fields:
+        - Destinations[].place.image_url
+        - Destinations[].cuisine.image_url
+        - Hotels[].image_url
+        These fields are automatically included from the source JSON data.
     """
     client = get_milvus_client()
     

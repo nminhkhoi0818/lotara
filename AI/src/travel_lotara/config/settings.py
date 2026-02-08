@@ -20,6 +20,7 @@ class Settings(BaseModel):
     # Opik Configuration
     opik_api_key: str | None = Field(default=None)
     opik_project_name: str = Field(default="lotara-travel")
+    opik_eval_project: str = Field(default="lotara-evals")  # Separate project for evaluations
     opik_workspace_name: str = Field(default="lotara-workspace")
     opik_tags: list[str] = Field(default_factory=lambda: ["travel", "multi-agent", "adk"])
     project_environment: str = Field(default="development")
@@ -59,6 +60,7 @@ def load_settings() -> Settings:
         # Opik
         opik_api_key=os.getenv("OPIK_API_KEY"),
         opik_project_name=os.getenv("OPIK_PROJECT_NAME", "lotara-travel"),
+        opik_eval_project=os.getenv("OPIK_EVAL_PROJECT", "lotara-evals"),
         opik_workspace_name=os.getenv("OPIK_WORKSPACE_NAME", "lotara-workspace"),
         project_environment=os.getenv("ENV", os.getenv("ENVIRONMENT", "development")),
         
@@ -116,7 +118,7 @@ FAST_GENERATION_CONFIG = types.GenerateContentConfig(
     top_p=0.95,                   # Nucleus sampling for speed
     top_k=40,                     # Limit candidates for speed
     candidate_count=1,            # Only generate 1 response
-    max_output_tokens=8000,       # Prevent runaway generation
+    max_output_tokens=65536,       # Prevent runaway generation
     stop_sequences=[],            # No custom stop sequences
     response_modalities=["TEXT"], # Explicit text-only
 )
@@ -128,7 +130,7 @@ JSON_GENERATION_CONFIG = types.GenerateContentConfig(
     top_p=0.8,                    # More focused sampling
     top_k=20,                     # Limit options for consistency
     candidate_count=1,            # Single response
-    max_output_tokens=16000,      # Large enough for full itinerary JSON
+    max_output_tokens=65536,      # Increased for long itineraries (was 16000, caused truncation)
     response_mime_type="application/json",  # Force JSON format (incompatible with tools)
 )
 
@@ -140,7 +142,7 @@ TOOL_COMPATIBLE_JSON_CONFIG = types.GenerateContentConfig(
     top_p=0.8,                    # More focused sampling
     top_k=20,                     # Limit options for consistency
     candidate_count=1,            # Single response
-    max_output_tokens=16000,      # Large enough for full itinerary JSON
+    max_output_tokens=65536,      # Large enough for full itinerary JSON
     # NO response_mime_type - let output_schema handle JSON formatting
 )
 

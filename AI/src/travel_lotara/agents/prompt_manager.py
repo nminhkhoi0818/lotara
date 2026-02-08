@@ -206,12 +206,15 @@ class PromptManager:
 prompt_manager = PromptManager()
 
 
-def register_all_prompts():
+def register_all_prompts(tracer=None):
     """
     Register all agent prompts with Opik.
     
     This function should be called explicitly after all imports are complete
     to avoid circular import issues.
+    
+    Args:
+        tracer: Optional tracer instance (for compatibility, not used)
     """
     try:
         from src.travel_lotara.agents.prompt import ROOT_AGENT_INSTR, ROOT_AGENT_METADATA
@@ -235,6 +238,11 @@ def register_all_prompts():
             FORMATTER_AGENT_INSTR,
             FORMATTER_AGENT_METADATA
         )
+
+        from .sub_agents.planning_formatter_agent import (
+            PLANNING_FORMATTER_INSTR, 
+            PLANNING_FORMATTER_AGENT_METADATA
+        )
         
         # Register all prompts
         prompt_manager.register_prompt("root_agent", ROOT_AGENT_INSTR, ROOT_AGENT_METADATA)
@@ -243,6 +251,8 @@ def register_all_prompts():
         prompt_manager.register_prompt("refactoring_output_agent", REFACTORING_OUTPUT_INSTR, REFACTORING_OUTPUT_METADATA)
         prompt_manager.register_prompt("google_search_agent", GOOGLE_SEARCH_INSTR, GOOGLE_SEARCH_METADATA)
         prompt_manager.register_prompt("formatter_agent", FORMATTER_AGENT_INSTR, FORMATTER_AGENT_METADATA)
+        prompt_manager.register_prompt("planning_formatter_agent", PLANNING_FORMATTER_INSTR, PLANNING_FORMATTER_AGENT_METADATA)
+
         
         logger.info(f"[Prompt Manager] Registered {len(prompt_manager.list_prompts())} prompts")
     except Exception as e:

@@ -321,6 +321,7 @@ class GenericEvent(BaseModel):
     departure_time: Optional[str] = Field(None, description="Departure time (for flights)")
     arrival_time: Optional[str] = Field(None, description="Arrival time (for flights)")
     location: Optional[LocationActivity] = Field(None, description="Location details")
+    location_name: Optional[str] = Field(None, description="Name of the location/destination for RAG retrieval")
     budget: Optional[str] = Field(None, description="Budget for the event")
     keywords: Optional[List[str]] = Field(None, description="Keywords related to the event")
     average_timespan: Optional[str] = Field(None, description="Average duration of the event")
