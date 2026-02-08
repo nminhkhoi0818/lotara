@@ -111,14 +111,24 @@ def create_attraction_retrieval_agent():
 Build a natural language query from the state:
 - Read inspiration_output for recommended regions
 - Read travel_style, budget, companions for user preferences
+- Read average_budget_spend_per_day to understand budget constraints
 - Combine into a descriptive query
 
-Example query: "Find cultural destinations in Nha Trang and Hoi An for solo traveler with midrange budget"
+Budget awareness:
+If average_budget_spend_per_day indicates:
+- Budget tier (20-50) → Prefer free/low-cost attractions, hidden gems, local spots
+- Midrange tier (50-100) → Mix of free and paid attractions
+- Higher tiers → All attractions including premium experiences
 
-Call the retrieval tool with:
-- query: your constructed query
-- top_k: 10
+Query construction:
+Include travel style, budget context, and crowd preference.
 
+Example queries:
+- "Find cultural and historical destinations in Hue and Hoi An for a couple with budget-friendly options, focusing on hidden gems and local spots"
+- "Find adventure activities in Sapa and Ha Giang for solo traveler with midrange budget, suitable for active pace"
+- "Find luxury beach resorts and premium experiences in Nha Trang and Phu Quoc for family"
+
+Call the retrieval tool with query and top_k=10.
 Return the complete tool response containing location data with Images, Ratings, Hotels, Destinations, and Activities."""
     
     config = AgentConfig(
@@ -141,9 +151,26 @@ def create_hotel_retrieval_agent():
 
 Build query from state:
 - Read inspiration_output for recommended regions  
-- Read budget and accommodation preferences
+- Read average_budget_spend_per_day to determine budget tier
+- Read accommodation preferences
 
-Example query: "Find midrange hotels in Hanoi and Hue with standard accommodation"
+Budget tier mapping:
+If average_budget_spend_per_day contains:
+- "20" to "50" → Search: "low-cost budget hotels under $35 per night"
+- "50" to "100" → Search: "midrange hotels $35-80 per night"  
+- "100" to "200" → Search: "upscale hotels $80-150 per night"
+- "200+" → Search: "luxury 5-star hotels above $150 per night"
+
+If budget tier cannot be determined, default to: "midrange hotels with good reviews"
+
+Query construction:
+1. Get recommended regions from inspiration_output
+2. Determine budget tier keywords from average_budget_spend_per_day
+3. Combine: "Find [budget keywords] in [regions] with good reviews"
+
+Example queries:
+- "Find low-cost budget hotels under $35/night in Hue and Hoi An with good reviews"
+- "Find midrange hotels $35-80/night in Hanoi and Hoi An with standard accommodation"
 
 Call the retrieval tool with query and top_k=5.
 Return the response containing hotel data."""

@@ -25,7 +25,10 @@ Respect all constraints strictly
 """
 from datetime import datetime
 
-VERSION = "1.0.0"
+from travel_lotara.config.settings import get_settings
+
+_settings = get_settings()
+VERSION = _settings.version
 
 # Planning Agent Prompt Metadata
 PLANNING_AGENT_METADATA = {
@@ -72,7 +75,7 @@ CRITICAL - How to extract RAG data:
 1. RAG results structure: {"locations": [array of location objects], "count": N, "query": string}
 2. Access locations: rag_attractions.locations, rag_hotels.locations, rag_activities.locations
 3. Each location object has these fields - USE THEM ALL:
-   - "Location name": Use for event location/description
+   - "Location name": Use for event location/description AND location_name field
    - "Location": Province name
    - "Description": Full description
    - "Rating": Use for average_ratings
@@ -85,7 +88,21 @@ CRITICAL - How to extract RAG data:
 STRICT RULES:
 - Use ONLY data from RAG retrieval (rag_attractions, rag_hotels, rag_activities)
 - Do NOT invent locations - all must come from ChromaDB results
-- EVERY event MUST have image_url from RAG "Image" field
+- EVERY event MUST have location_name from RAG "Location name" field
+- 🚨 IMAGE URL CRITICAL RULES:
+  * ONLY use image_url if location_name EXACTLY matches RAG "Location name"
+  * If location_name="Hotel ABC" → search RAG for "Hotel ABC" → if NOT found → image_url=null
+  * NEVER reuse the same image_url for different location_name values
+  * Each unique location must have unique image_url OR null
+  * Same image_url on different locations = FORBIDDEN
+  * If location not in RAG database → image_url MUST be null
+- ⚠️ VALIDATION: Track used image_urls, ensure no duplicates in same itinerary
+- Example CORRECT:
+  * Event 1: location_name="Vinpearl Land", image_url="https://.../vinpearl.jpg"
+  * Event 2: location_name="Po Nagar Tower", image_url="https://.../ponagar.jpg"
+- Example WRONG:
+  * Event 1: location_name="Vinpearl Land", image_url="https://.../nhatrang.jpg"
+  * Event 2: location_name="Hotel in Nha Trang", image_url="https://.../nhatrang.jpg" ← DUPLICATE!
 - Extract location details from RAG "Location name" and "Description"
 - Extract hotels from RAG "Hotels" array with cost and reviews
 - Extract activities from RAG "Destinations" array with timespans
@@ -114,21 +131,32 @@ For EACH day, provide:
     {
       "event_type": "visit|meal|hotel_checkin|hotel_checkout|transport",
       "description": "from RAG Description",
-      "location_name": "from RAG 'Location name'",
+      "location_name": "from RAG 'Location name' - REQUIRED for RAG retrieval",
       "province": "from RAG 'Location'",
       "start_time": "HH:MM UTC+7",
       "end_time": "HH:MM UTC+7",
       "budget": "estimated budget depending on internet researching",
       "keywords": ["from RAG Keywords"],
       "average_timespan": "from RAG Destinations.place.average_timespan",
-      "image_url": "from RAG 'Image' - REQUIRED",
+      "image_url": "from RAG 'Image' - REQUIRED and UNIQUE per location",
       "rating": "from RAG 'Rating' if available, else self-calculate average"
     }
   ]
 }
 
-CRITICAL: Include RAG data references in output so formatter can extract them.
-Example: "Visit Cam Ranh Long Beach (image: https://..., rating: 4.8, keywords: sea,beach,relax)"
+CRITICAL: 
+- Include location_name for ALL events (extracted from RAG "Location name")
+- Include RAG data references in output so formatter can extract them
+- ⚠️ STRICT MATCHING: Only include image_url if location_name EXACTLY matches RAG entry
+- If location_name not in RAG → mark as (image: null)
+- NEVER reuse image_urls - each location must have unique image OR null
+- Track which image_urls you've used to avoid duplicates
+Example CORRECT: 
+  "Visit Cam Ranh Long Beach (location_name: Cam Ranh Long Beach, image: https://.../beach.jpg, rating: 4.8)"
+  "Stay at Sunrise Hotel (location_name: Sunrise Hotel, image: null, rating: null)"
+Example WRONG:
+  "Visit Vinpearl (location_name: Vinpearl, image: https://.../city.jpg)"
+  "Hotel ABC (location_name: Hotel ABC, image: https://.../city.jpg)" ← SAME IMAGE = WRONG!
 
 """
 

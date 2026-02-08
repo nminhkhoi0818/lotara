@@ -134,11 +134,12 @@ def retrieve_data_from_milvus(query: str, top_k: int = 5, tool_context: Optional
     Use this tool to get detailed Vietnam tourism location data based on user queries.
     Each location includes:
     - Location name, province, description, rating
-    - Destinations (places to visit with budget, time, duration)
-    - Cuisine recommendations (restaurants with budget, duration)
-    - Hotels (with cost category and reviews)
+    - Image (main location image URL)
+    - Destinations (places to visit with budget, time, duration, and image_url for each place/cuisine)
+    - Cuisine recommendations (restaurants with budget, duration, and image_url)
+    - Hotels (with cost category, reviews, and image_url)
     - Activities list
-    - Images and keywords
+    - Keywords for semantic understanding
     
     Args:
         query: Description of what the user is looking for (e.g., "beach destinations", 

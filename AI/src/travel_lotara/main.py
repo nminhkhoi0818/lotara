@@ -27,7 +27,7 @@ from google.genai import types
 from google.genai.errors import ServerError
 from src.travel_lotara.tracking import get_tracer, flush_traces
 from src.travel_lotara.core.input_parser import parse_backend_input, create_natural_language_query
-
+from .agents import register_all_prompts
 
 async def run_agent(
     user_input: str,
@@ -47,6 +47,7 @@ async def run_agent(
     """
     from src.travel_lotara.agents.root_agent import root_agent
     
+    # Initialize Opik tracing
     tracer = get_tracer()
     session_service = InMemorySessionService()
     
@@ -54,6 +55,26 @@ async def run_agent(
     from src.travel_lotara.config.settings import get_settings
     settings = get_settings()
     print(f"[DEBUG] Using model: {settings.model}")
+    
+    # CRITICAL: Instrument root_agent with Opik tracing BEFORE creating runner
+    # This enables automatic tracing of all agents and sub-agents
+    if tracer.enabled:
+        print("[INFO] Setting up Opik tracing for root agent...")
+        tracer.instrument_agent(
+            root_agent,
+            metadata={"session_type": "cli" if not backend_json else "api"},
+            use_dedicated_tracer=False  # Hierarchical mode for root + sub-agents
+        )
+
+        # Add automatic prompt registration for all prompts used by agents
+        register_all_prompts(tracer=tracer)
+        print("[INFO] All prompts registered with Opik")
+
+        print("[OK] Root agent instrumented with Opik tracing")
+        print(f"[INFO] Traces will be visible at: https://www.comet.com/{settings.opik_workspace_name}/{settings.opik_project_name}/traces")
+        print("[INFO] Evaluation metrics will be automatically added to traces")
+    else:
+        print("[INFO] Opik tracing is disabled (no API key or package not installed)")
     
     runner = Runner(
         agent=root_agent,
@@ -85,6 +106,9 @@ async def run_agent(
     session.state["average_budget_spend_per_day"] = "$50-100"
     session.state["user_profile"] = {}
     session.state["itinerary"] = {}
+    
+    # Store user query in state for evaluation
+    session.state["user_request"] = user_input
     
     # Override with backend JSON state if provided
     if initial_state:
@@ -120,6 +144,11 @@ async def run_agent(
             # Reset text parts on retry
             final_text_parts = []
             
+            # Note: Opik trace_id will be captured by the tracer's callbacks
+            # and printed to console. For automatic evaluation in callbacks,
+            # the trace_id will be extracted from tracer context if available.
+            # The OPIK SDK will print the trace URL automatically when tracing starts.
+            
             async for event in runner.run_async(
                 session_id=session.id,
                 user_id=session.user_id,
@@ -144,6 +173,44 @@ async def run_agent(
 
             # Print final output
             print("[INFO] Agent execution completed successfully")
+            
+            # Flush Opik traces to ensure all data is sent to Comet
+            if tracer.enabled:
+                print("[INFO] Flushing Opik traces to Comet...")
+                flush_traces()
+                print("[OK] Traces flushed successfully")
+                
+                # Run comprehensive automatic evaluation with all 5 metrics
+                try:
+                    print("[INFO] Running comprehensive evaluation (5 metrics)...")
+                    from src.travel_lotara.core.eval.auto_evaluator import auto_evaluate_response
+                    
+                    # Automatically evaluate with all metrics
+                    eval_result = auto_evaluate_response(
+                        user_query=user_input,
+                        agent_output=expected_output,
+                        session_state=session.state,
+                        verbose=True,  # Print beautiful results to console
+                    )
+                    
+                    if "error" not in eval_result:
+                        print("[OK] Comprehensive evaluation complete!")
+                        print("[INFO] All 5 metrics logged to Opik trace:")
+                        print("      • Safety Moderation")
+                        print("      • Hallucination Detection")
+                        print("      • Budget Compliance")
+                        print("      • Itinerary Quality")
+                        print("      • Answer Relevance")
+                    else:
+                        print(f"[WARNING] Evaluation completed with issues: {eval_result.get('error')}")
+                        print("[INFO] Traces are still recorded - you can evaluate manually later")
+                        
+                except Exception as e:
+                    print(f"[WARNING] Evaluation failed: {e}")
+                    print("[INFO] Traces are recorded - evaluation can be done manually")
+                
+                print(f"[VIEW] https://www.comet.com/{settings.opik_workspace_name}/{settings.opik_project_name}/traces")
+            
             break  # Success - exit retry loop
             
         except Exception as e:

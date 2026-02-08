@@ -27,6 +27,7 @@
           "events": [
             {
               "event_type": "flight",
+              "location_name": "Tan Son Nhat International Airport (SGN) to Narita International Airport (NRT)",
               "description": "Flight from Ho Chi Minh City to Tokyo",
               "departure_time": "08:00 AM UTC+7",
               "arrival_time": "02:00 PM UTC+9",
@@ -38,6 +39,7 @@
             {
               "event_type": "hotel_checkin",
               "description": "Check-in at Tokyo Central Hotel",
+              "location_name": "Tokyo Central Hotel",
               "location": {
                 "name": "Tokyo Central Hotel",
                 "address": "1-1-1 Shinjuku, Tokyo, Japan"
@@ -51,6 +53,7 @@
             },
             {
               "event_type": "visit",
+              "location_name": "Senso-ji Temple",
               "description": "Visit to Senso-ji Temple",
               "start_time": "07:00 PM UTC+9",
               "end_time": "08:30 PM UTC+9",
@@ -61,6 +64,7 @@
             },
             {
               "event_type": "visit",
+              "location_name": "Tokyo Tower",
               "description": "Visit to Tokyo Tower",
               "start_time": "09:00 PM UTC+9",
               "end_time": "10:30 PM UTC+9",
@@ -77,6 +81,7 @@
           "events": [
             {
               "event_type": "visit",
+              "location_name": "Meiji Shrine",
               "description": "Visit to Meiji Shrine",
               "start_time": "09:00 AM UTC+9",
               "end_time": "11:00 AM UTC+9",
@@ -91,6 +96,7 @@
             },
             {
               "event_type": "hotel_checkout",
+              "location_name": "Tokyo Central Hotel",
               "description": "Check-out from Tokyo Central Hotel",
               "location": {
                 "name": "Tokyo Central Hotel",
@@ -105,6 +111,7 @@
             },
             {
               "event_type": "flight",
+              "location_name": "Narita International Airport (NRT) to Tan Son Nhat International Airport (SGN)",
               "description": "Flight from Tokyo to Ho Chi Minh City",
               "departure_time": "02:00 PM UTC+9",
               "arrival_time": "06:00 PM UTC+7",

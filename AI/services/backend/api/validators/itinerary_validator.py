@@ -21,6 +21,7 @@ class GenericEvent(BaseModel):
     departure_time: Optional[str] = None
     arrival_time: Optional[str] = None
     location: Optional[LocationActivity] = None
+    location_name: Optional[str] = None
     budget: Optional[str] = None
     keywords: Optional[List[str]] = None
     average_timespan: Optional[str] = None

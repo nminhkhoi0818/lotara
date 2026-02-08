@@ -21,9 +21,10 @@ Generate vibes, themes, emotional direction based on personality.
 
 """
 from datetime import datetime
+from travel_lotara.config.settings import get_settings
 
-
-VERSION = "1.0.0"
+_settings = get_settings()
+VERSION = _settings.version
 
 # Inspiration Agent Prompt Metadata
 INSPIRATION_AGENT_METADATA = {
