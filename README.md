@@ -11,12 +11,9 @@
 ## 📖 Table of Contents
 - [What is Lotara?](#-what-is-lotara)
 - [What Problem Does It Solve?](#-what-problem-does-it-solve)
-- [Key Features](#-key-features)
-- [Technology Stack](#-technology-stack)
 - [System Architecture](#-system-architecture)
 - [How It Works](#-how-it-works)
 - [Getting Started](#-getting-started)
-- [Project Structure](#-project-structure)
 
 ---
 
