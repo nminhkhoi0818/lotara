@@ -49,55 +49,76 @@ Lotara solves these problems by:
 
 Lotara uses a **three-tier architecture** that separates concerns and enables scalability:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        USER'S BROWSER                        │
-│                     (Next.js Frontend)                       │
-│  ┌─────────────┐  ┌──────────────┐  ┌──────────────────┐  │
-│  │  Onboarding │  │   Results    │  │  Saved Trips     │  │
-│  │    Chat     │  │  Dashboard   │  │   & Personas     │  │
-│  └─────────────┘  └──────────────┘  └──────────────────┘  │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTPS/REST API
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      BACKEND API SERVER                      │
-│                      (NestJS TypeScript)                     │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │              Controllers Layer                        │  │
-│  │  ┌─────────┐  ┌────────────┐  ┌─────────────────┐  │  │
-│  │  │  Users  │  │   Places   │  │ Recommendations │  │  │
-│  │  └─────────┘  └────────────┘  └─────────────────┘  │  │
-│  └──────────────────┬───────────────────────────────────┘  │
-│                     │                                        │
-│  ┌──────────────────▼─────────────────────────────────┐    │
-│  │              Services Layer                         │    │
-│  │  ┌──────────────┐  ┌──────────────────────────┐   │    │
-│  │  │Vibe Mapping  │  │  Match Scoring Engine    │   │    │
-│  │  │   Service    │  │  (Personality Algorithm) │   │    │
-│  │  └──────────────┘  └──────────────────────────┘   │    │
-│  └─────────────────────────────────────────────────────┘   │
-└────────────────────────┬────────────────────────────────────┘
-                         │ HTTP API Calls
-                         ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      AI SERVICE LAYER                        │
-│                  (Python Multi-Agent System)                 │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │              Mother Agent (Orchestrator)             │   │
-│  └───┬────────┬────────┬────────┬────────┬────────────┘   │
-│      │        │        │        │        │                  │
-│  ┌───▼──┐ ┌──▼───┐ ┌──▼────┐ ┌─▼─────┐ ┌▼──────┐         │
-│  │Flight│ │Hotel │ │Activity│ │Budget │ │ Visa  │         │
-│  │Agent │ │Agent │ │ Agent  │ │ Agent │ │ Agent │         │
-│  └──────┘ └──────┘ └────────┘ └───────┘ └───────┘         │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐  │
-│  │  Guardrails Layer (Safety & Validation)              │  │
-│  │  • Input sanitization • Output validation            │  │
-│  │  • Hallucination prevention • Budget constraints     │  │
-│  └──────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        FE["Next.js Application<br/>• Onboarding & Quiz<br/>• Results & Saved Trips<br/>• Chat Interface"]
+    end
+    
+    subgraph "Backend Layer"
+        BE["NestJS API Server<br/>• User Management<br/>• Questions & Places<br/>• Recommendations Engine<br/>• PostgreSQL Database"]
+    end
+    
+    subgraph "AI Service Layer (Python)"
+        AI[FastAPI Server<br/>Google ADK]
+        AI_Root["Root Agent<br/>Main Orchestrator"]
+        AI_Sub["Sub-Agents"]
+        AI_Sub_Itinerary["Itinerary Agent<br/>• Trip Planning<br/>• Activity Scheduling<br/>• Day-by-Day Planning"]
+        AI_Sub_Hotel["Hotel Agent<br/>• Budget Matching<br/>• Preference Alignment<br/>• Location Optimization"]
+        AI_Sub_Activity["Activity Agent<br/>• Interest Matching<br/>• Workcation Support<br/>• Time Allocation"]
+        AI_Tools["Tools & Utilities<br/>• Web Search<br/>• Data Parsing<br/>• Validation Tools<br/>• Format Conversion"]
+        AI_Guards["Guardrails<br/>• Safety Checks<br/>• Budget Validation<br/>• Itinerary Rules<br/>• Output Validation"]
+        AI_Config["Configuration<br/>• Prompts<br/>• Agent Profiles<br/>• Model Settings"]
+        AI_VDB[(Milvus Vector DB<br/>Semantic Search<br/>Embeddings)]
+        AI_Trace["Opik Tracing<br/>• Performance Monitoring<br/>• Agent Tracking<br/>• Error Logging"]
+        
+        AI --> AI_Root
+        AI_Root --> AI_Sub
+        AI_Sub --> AI_Sub_Itinerary
+        AI_Sub --> AI_Sub_Hotel
+        AI_Sub --> AI_Sub_Activity
+        AI_Sub_Itinerary --> AI_Tools
+        AI_Sub_Hotel --> AI_Tools
+        AI_Sub_Activity --> AI_Tools
+        AI_Sub_Itinerary --> AI_Guards
+        AI_Sub_Hotel --> AI_Guards
+        AI_Sub_Activity --> AI_Guards
+        AI_Root --> AI_Config
+        AI --> AI_VDB
+        AI --> AI_Trace
+    end
+    
+    subgraph "External Services"
+        Google["Google Generative AI<br/>• Gemini Models<br/>• Embeddings API<br/>• Text Generation"]
+        Vercel["Vercel Platform<br/>• Frontend Hosting<br/>• AI Service Hosting<br/>• Serverless Functions"]
+        Supabase["Supabase<br/>• Authentication<br/>• User Storage<br/>• Real-time DB"]
+        OpenTel["OpenTelemetry<br/>• Distributed Tracing<br/>• Metrics Collection<br/>• Performance Data"]
+    end
+    
+    FE -->|REST API Calls| BE
+    BE -->|AI Generation Request| AI
+    AI_Root -->|LLM Calls| Google
+    AI -->|Vector Search & Store| AI_VDB
+    AI_VDB -->|Embeddings| Google
+    BE -->|Auth & Storage| Supabase
+    AI_Trace -->|Telemetry Data| OpenTel
+    
+    FE -.->|Deployed on| Vercel
+    AI -.->|Deployed on| Vercel
+    
+    classDef frontend fill:#61dafb,stroke:#333,stroke-width:2px,color:#000
+    classDef backend fill:#e0234e,stroke:#333,stroke-width:2px,color:#fff
+    classDef ai fill:#4285f4,stroke:#333,stroke-width:2px,color:#fff
+    classDef aiComponent fill:#7cb9ff,stroke:#333,stroke-width:2px,color:#000
+    classDef database fill:#336791,stroke:#333,stroke-width:2px,color:#fff
+    classDef external fill:#10b981,stroke:#333,stroke-width:2px,color:#fff
+    
+    class FE frontend
+    class BE backend
+    class AI ai
+    class AI_Root,AI_Sub,AI_Sub_Itinerary,AI_Sub_Hotel,AI_Sub_Activity,AI_Tools,AI_Guards,AI_Config,AI_Trace aiComponent
+    class AI_VDB database
+    class Google,Vercel,Supabase,OpenTel external
 ```
 
 ### **Architecture Flow**
